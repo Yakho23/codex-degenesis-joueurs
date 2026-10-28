@@ -88,6 +88,10 @@ details.card.ppotc>summary .t{font-size:16.5px}
 .pq{display:inline-flex;align-items:center;gap:4px}
 .pq small{font-family:var(--f-ui);font-size:12.5px;color:var(--dim)}
 .pq.low output{color:var(--red)}
+.pih.mun{gap:8px 14px}
+.pih.mun .pin2{flex:1 0 100%}
+.pih.mun .pq{flex:1 1 0;min-width:0;flex-direction:column;align-items:flex-start;gap:3px}
+.pih.mun .pstep output{min-width:3.2ch}
 .pstep{display:inline-flex;align-items:center;border:1px solid var(--line2)}
 .pstep button{width:40px;height:40px;border:0;background:var(--panel2);font-family:var(--f-ui);font-size:22px;line-height:1;display:grid;place-items:center;padding:0}
 .pstep output{min-width:38px;text-align:center;font-family:var(--f-ui);font-weight:700;font-size:19px;font-variant-numeric:tabular-nums}
