@@ -242,3 +242,33 @@ details.card.ppotc>summary .t{font-size:16.5px}
 .proll .tally b{font-size:22px}
 .proll .verdict .big{font-size:21px}
 .proll .prres{gap:8px;padding-top:8px}
+
+/* Identité : emblèmes Culture / Concept / Culte */
+.pembs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:2px 0 14px}
+.pemb{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;min-width:0}
+.peh{position:relative;width:70px;height:78px;background:var(--fg);color:var(--red);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.pehx{position:absolute;inset:2px;display:grid;place-items:center;background:#000;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.pehx svg{width:56%;height:56%}
+.pemb.vide .peh{background:var(--line2)}
+.pemb.vide .pev{color:var(--dim)}
+.pel{font-family:var(--f-ui);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+.pev{font-size:16px;line-height:1.2;color:#fff;overflow-wrap:anywhere}
+.pidg{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin:0 0 14px}
+.pidg>div{background:var(--panel2);padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pidg span{font-family:var(--f-ui);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.pidg b{font-weight:400;font-size:16.5px;color:#fff;overflow-wrap:anywhere}
+
+/* Sporulation permanente */
+.tbx.spo i.on.perm,.tbx i.perm{background:var(--red);border-color:var(--red)}
+.pperm{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;flex-wrap:wrap}
+.ppl{display:flex;flex-direction:column;font-family:var(--f-ui);font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:#fff}
+.ppl small,.pperm2 .pcl small{font-size:12.5px;letter-spacing:.03em;text-transform:none;color:var(--dim)}
+.pex{color:var(--red)!important}
+.pperm2{align-items:center}
+
+/* Parcours : Rang / Expérience / LC */
+.pparc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ppc{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--panel2);border:1px solid var(--line);padding:12px 6px 8px;min-width:0}
+.ppc svg{width:30px;height:30px;color:var(--red)}
+.ppc span{font-family:var(--f-ui);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:center}
+.ppc .pin{width:100%;text-align:center;font-size:22px;padding:6px 2px;background:#000;min-width:0}
