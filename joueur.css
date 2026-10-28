@@ -1,0 +1,232 @@
+/* Codex Degenesis (joueur) — styles propres à la version joueur (fiche de personnage).
+   Chargé après la feuille de style commune reprise du Codex du MJ : réutilise ses couleurs (--red, --line…). */
+
+/* Liste des personnages */
+.pcard{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-left:3px solid var(--red);background:var(--panel);padding:10px 12px}
+.pcmain{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:0;background:none;padding:0;text-align:left}
+.pcmain .pn{font-size:19px;color:#fff}
+.pcmain .pm{font-family:var(--f-ui);font-size:14px;letter-spacing:.05em;color:var(--red)}
+.pcmain .pm2{font-family:var(--f-ui);font-size:14px;letter-spacing:.03em;color:var(--dim)}
+/* portrait hexagonal avec liseré blanc : hexagone blanc + hexagone noir intérieur */
+.pav{width:52px;height:52px;flex:none;position:relative;background:var(--fg);color:var(--red);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.pvi{position:absolute;inset:1.5px;display:grid;place-items:center;background:#000;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.pav.big .pvi{inset:2px}
+.pav svg{width:60%;height:60%}
+.pav b{font-family:var(--f-dg);font-size:22px;font-weight:400;color:var(--mute)}
+.pav.big{width:72px;height:80px}
+.btn.sm{min-height:38px;padding:6px 12px;font-size:15px;flex:none}
+.btn.file{display:inline-flex;align-items:center;justify-content:center;text-align:center}
+.btnrow .btn.sm{flex:none}
+
+/* En-tête de fiche */
+.phead{display:flex;align-items:center;gap:14px;padding:4px 0 2px}
+.phi{flex:1;min-width:0}
+.phn{font-size:24px;color:#fff;line-height:1.15;overflow-wrap:anywhere}
+.phm{font-family:var(--f-ui);font-size:15px;letter-spacing:.05em;color:var(--red);margin-top:3px}
+.pbar{display:flex;justify-content:space-between;gap:8px}
+
+/* Blocs */
+.psec{border:1px solid var(--line);background:var(--panel);padding:12px 12px 14px;display:flex;flex-direction:column;gap:8px}
+.pst{font-family:var(--f-ui);font-weight:700;font-size:16px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:#000;margin:-12px -12px 4px;padding:7px 12px;border-bottom:1px solid var(--line)}
+.plbl{font-family:var(--f-ui);font-size:13px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-top:4px}
+.pnone{margin:0;color:var(--dim);font-size:15px}
+.ptxt{margin:0;white-space:pre-wrap;font-size:15.5px}
+.pher{margin:0;padding-left:1.1em;font-size:15.5px}
+.prow{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:15.5px;border-bottom:1px solid var(--line);padding:4px 0}
+.prow:last-child{border-bottom:0}
+.prow b{font-family:var(--f-ui);font-weight:600;color:#fff;letter-spacing:.03em}
+.pmx{display:flex;align-items:center;gap:8px;font-family:var(--f-ui);color:var(--dim)}
+.psec .statl{margin:0}
+
+/* Champs de saisie */
+.pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}
+.pl{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pl.wide{grid-column:1/-1}
+.pl>span:first-child{font-family:var(--f-ui);font-size:13px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+.pin{width:100%;box-sizing:border-box;background:var(--ink);border:1px solid var(--line2);padding:9px 10px;font-size:16px;min-height:44px;border-radius:0}
+.pin:focus{border-color:var(--red);outline:none}
+.pta{min-height:96px;resize:vertical;line-height:1.4}
+.pchk{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:15.5px;min-height:40px}
+.pchk input{width:22px;height:22px;accent-color:var(--red)}
+
+/* Cases (attributs, compétences, origines, Potentiels) */
+.bxs{display:inline-flex;gap:3px;flex:none}
+.bx{display:block;width:15px;height:15px;border:1.5px solid var(--line2);background:transparent;padding:0;box-sizing:border-box}
+.bx.on{background:var(--fg);border-color:var(--fg)}
+.bxs.ed{gap:4px}
+.bxs.ed .bx{width:28px;height:28px;border-color:rgba(242,239,232,.45)}
+.bxs.ed .bx.on{background:var(--red);border-color:var(--red)}
+.pattrs{display:flex;flex-direction:column;gap:14px}
+.pah{display:flex;align-items:center;gap:8px;background:#000;border:1px solid var(--line2);padding:5px 8px}
+.pah .pan{flex:1;font-family:var(--f-ui);font-weight:700;font-size:17px;letter-spacing:.1em;text-transform:uppercase;color:#fff}
+.pah .bx:not(.on){border-color:rgba(242,239,232,.5)}
+.pmk{width:22px;text-align:center;color:var(--dim);font-size:16px;border:0;background:none;padding:0;flex:none}
+button.pmk{width:34px;height:34px;border:1px solid var(--line2)}
+.pmk.on{color:var(--red)}
+.psk{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 2px 5px 10px;border-bottom:1px solid var(--line)}
+.psk:last-child{border-bottom:0}
+.psk>span{font-family:var(--f-ui);font-size:16px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg);min-width:0}
+
+/* Potentiels */
+.ppot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+.ppot.ed{gap:8px}
+.ppot.ed .pin{flex:1;min-width:0}
+details.card.ppotc>summary{align-items:center;padding:10px 12px}
+details.card.ppotc>summary .t{font-size:16.5px}
+
+/* Inventaire */
+.penc{font-family:var(--f-ui);font-size:17px;letter-spacing:.05em;color:var(--mute);text-align:right}
+.penc b{color:#fff;font-size:22px;margin-left:6px}
+.pitem{border-bottom:1px solid var(--line);padding:8px 0;display:flex;flex-direction:column;gap:4px}
+.pitem:last-of-type{border-bottom:0}
+.pitem.ed{border:1px solid var(--line2);padding:10px;gap:10px;background:rgba(0,0,0,.25)}
+.pih{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pin2{flex:1;min-width:120px;font-size:17px;color:#fff}
+.pil{font-family:var(--f-ui);font-size:14.5px;color:var(--mute);letter-spacing:.03em}
+.pdet summary{font-family:var(--f-ui);font-size:14px;color:var(--dim);cursor:pointer;letter-spacing:.05em}
+.pdet .statl{margin:6px 0 0}
+.pq{display:inline-flex;align-items:center;gap:4px}
+.pq small{font-family:var(--f-ui);font-size:12.5px;color:var(--dim)}
+.pq.low output{color:var(--red)}
+.pstep{display:inline-flex;align-items:center;border:1px solid var(--line2)}
+.pstep button{width:40px;height:40px;border:0;background:var(--panel2);font-family:var(--f-ui);font-size:22px;line-height:1;display:grid;place-items:center;padding:0}
+.pstep output{min-width:38px;text-align:center;font-family:var(--f-ui);font-weight:700;font-size:19px;font-variant-numeric:tabular-nums}
+
+/* Choix dans le Bazar */
+.pbz{display:flex;flex-direction:column;gap:4px;border:1px solid var(--red);padding:8px;background:rgba(0,0,0,.3)}
+.pbz .search{margin-bottom:4px}
+.pbzr{display:flex;justify-content:space-between;align-items:baseline;gap:10px;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:9px 4px;min-height:44px}
+.pbzr span{font-size:16px}
+.pbzr small{font-family:var(--f-ui);font-size:13px;color:var(--dim);text-align:right}
+
+/* Listes déroulantes et générateur de nom */
+.psel{appearance:none;-webkit-appearance:none;padding-right:30px;background-image:linear-gradient(45deg,transparent 50%,var(--mute) 50%),linear-gradient(135deg,var(--mute) 50%,transparent 50%);background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px;background-repeat:no-repeat;font-family:var(--f-body)}
+.psel option{background:var(--panel);color:var(--fg)}
+.pnom{display:flex;gap:6px}
+.pnom .pin{flex:1;min-width:0}
+.pdice{flex:none;width:46px;min-height:44px;border:1px solid var(--red);background:var(--red-glow);color:var(--fg);display:grid;place-items:center;padding:0}
+.pdice svg{width:26px;height:26px}
+.pdice:active{background:var(--red)}
+
+/* Condition : formule sous chaque piste */
+.pcond{align-items:center}
+.pcl{display:flex;flex-direction:column;min-width:0}
+.pcl small{font-family:var(--f-ui);font-size:13.5px;color:var(--dim);letter-spacing:.03em}
+.pcl small b{color:var(--fg)}
+.pmx{display:flex;align-items:center;gap:6px;flex:none}
+
+/* Mods par arme ou armure */
+.pmods{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line2);padding-top:8px}
+.pml{color:var(--dim)}
+
+/* ───── Écran Combat ───── */
+.ptrk{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
+.ptrk:last-of-type{border-bottom:0}
+.ptrh{display:flex;justify-content:space-between;align-items:baseline}
+.ptrl{font-family:var(--f-ui);font-weight:700;font-size:17px;letter-spacing:.1em;text-transform:uppercase}
+.ptrv{font-family:var(--f-ui);font-size:26px;color:#fff;font-variant-numeric:tabular-nums}
+.ptrv small{font-size:16px;color:var(--dim);font-weight:500}
+.ptrb{display:flex;align-items:center;gap:8px}
+.tbtn{flex:none;width:52px;height:52px;border:1px solid var(--line2);background:var(--panel2);font-family:var(--f-ui);font-size:30px;line-height:1;display:grid;place-items:center;padding:0}
+.tbtn:active{background:var(--red);border-color:var(--red)}
+.tbx{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:3px}
+.tbx i{width:12px;height:12px;border:1.5px solid rgba(242,239,232,.4);box-sizing:border-box}
+.tbx i.on{background:var(--red);border-color:var(--red)}
+.tbx.ego i.on{background:var(--fg);border-color:var(--fg)}
+.tbx.spo i.on{background:#b39a62;border-color:#b39a62}
+.tbx.ammo i{width:14px;height:20px;border-radius:2px}
+.tbx.ammo i.on{background:#d9bd7c;border-color:#d9bd7c}
+.ptrw{font-family:var(--f-ui);font-size:14.5px;letter-spacing:.03em;color:#fff;border-left:3px solid var(--red);background:rgba(236,30,38,.12);padding:5px 9px}
+.pstats{display:flex;flex-wrap:wrap;gap:4px 16px;font-family:var(--f-ui);font-size:15px;color:var(--mute);padding:4px 0}
+.pstats b{color:#fff;font-size:17px}
+.petats{display:flex;flex-wrap:wrap;gap:6px}
+.pwpn{border-bottom:1px solid var(--line);padding:10px 0;display:flex;flex-direction:column;gap:6px}
+.pwpn:last-child{border-bottom:0}
+.pwh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.pwn{font-size:18px;color:#fff}
+.pwva{font-family:var(--f-ui);font-weight:700;font-size:22px;color:var(--red)}
+.pammo{display:flex;align-items:center;gap:10px}
+.pamt{font-family:var(--f-ui);font-weight:700;font-size:18px;color:#fff;flex:none}
+.btn[disabled]{opacity:.4}
+.pcons{border-bottom:1px solid var(--line);padding:8px 0;display:flex;flex-direction:column;gap:4px}
+.pcons:last-child{border-bottom:0}
+.pundo{width:100%;border-color:var(--red)}
+
+/* Panneau de jet (sur la même page) */
+.proll{border:1px solid var(--red);background:#0f0e0d;padding:10px;display:flex;flex-direction:column;gap:9px;margin:4px 0 6px}
+.prh{display:flex;justify-content:space-between;align-items:center;font-family:var(--f-ui);font-weight:700;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#fff}
+.prx{width:40px;height:40px;border:1px solid var(--line2);background:none;font-size:24px;line-height:1;padding:0}
+.prcalc{font-family:var(--f-ui);font-size:14.5px;color:var(--mute);letter-spacing:.03em}
+.prrow{display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:var(--f-ui);font-size:15.5px}
+.prrow small{color:var(--dim);font-size:13px}
+.prdifw{display:flex;flex-direction:column;gap:6px;font-family:var(--f-ui);font-size:15.5px}
+.prdif.diffs{gap:5px}
+.prdif .chip{min-width:0;justify-content:center;padding:6px 4px}
+.prres{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:10px}
+.pskb{width:100%;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;color:inherit;cursor:pointer}
+.pskb:active{background:var(--red-glow)}
+
+/* Inventaire en modification : objets repliés */
+.pitem.pcol{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;background:rgba(0,0,0,.25);border:1px solid var(--line2);padding:10px 12px;color:inherit;cursor:pointer;margin-bottom:6px}
+.pcoln{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;text-align:left}
+.pcoln small{font-family:var(--f-ui);font-size:14px;color:var(--mute);letter-spacing:.03em}
+.pcolm{flex:none;font-family:var(--f-ui);font-size:14.5px;color:var(--red);letter-spacing:.05em}
+.pfold{align-self:flex-start;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pitem.ed{margin-bottom:6px}
+
+/* Mode de tir, cibles, dégâts, Régularité */
+.prmode{display:flex;flex-wrap:wrap;gap:6px}
+.prmode .chip[disabled]{opacity:.35}
+.prinfo{font-family:var(--f-ui);font-size:14.5px;color:#d9bd7c;letter-spacing:.03em;border-top:1px solid var(--line);padding-top:8px}
+.prt{font-family:var(--f-ui);font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.prdmg{font-family:var(--f-ui);font-size:16px;color:var(--mute);letter-spacing:.03em}
+.prdmg b{color:#fff;font-size:20px}
+.prregul{display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--red);padding-top:10px}
+
+/* Bloc armure (écran Combat) */
+.parh{display:flex;align-items:center;gap:14px}
+.paric{flex:none;width:64px;height:64px;display:grid;place-items:center;color:var(--fg);background:radial-gradient(circle at 50% 40%,rgba(236,30,38,.35),rgba(236,30,38,0) 70%);border:1px solid var(--line2);border-radius:50%}
+.paric svg{width:40px;height:40px}
+.paric.off{opacity:.4}
+.parv{font-family:var(--f-ui);font-weight:700;font-size:40px;line-height:1;color:#fff}
+.parv small{font-size:16px;font-weight:500;color:var(--dim);letter-spacing:.06em;margin-left:4px}
+.parp{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.parp span{font-family:var(--f-ui);font-size:13.5px;letter-spacing:.04em;color:#d9bd7c;border:1px solid #6e5f3c;padding:2px 7px}
+.parl{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:8px}
+.parl .chip{min-width:82px;justify-content:center}
+.parl.off .parn{opacity:.5}
+.parn{display:flex;flex-direction:column;min-width:0}
+.parn span{font-size:16.5px;color:#fff}
+.parn small{font-family:var(--f-ui);font-size:14px;color:var(--mute);letter-spacing:.03em}
+
+/* Combat en cours : barre collée en haut (dans l’en-tête) */
+.pstart{margin-bottom:2px}
+.pcbar{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;border-top:1px solid var(--line);padding:8px 0 10px;font-family:var(--f-ui);font-size:15.5px;letter-spacing:.04em;color:var(--mute)}
+.pcbar b{color:#fff;font-size:20px;font-weight:700}
+.pcbar .pcr{color:var(--red);text-transform:uppercase;letter-spacing:.1em}
+.pcbar .pcr b{color:var(--red)}
+.pcbar .pcw{color:#d9bd7c}
+.pcbar .pce{color:#d9bd7c}
+.pcnext{width:48px;height:48px;border:1px solid var(--red);background:var(--red);color:#fff;display:grid;place-items:center;padding:0;border-radius:50%}
+.pcnext svg{width:26px;height:26px}
+.pcnext:active{background:var(--red-d)}
+
+/* Défense et autres actions, icônes des boutons */
+.pdef{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pdef .btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;min-height:78px}
+.pdef .btn svg{width:26px;height:26px}
+.pdef .btn span{font-size:16px;letter-spacing:.06em}
+.pdef .btn small{font-size:12px;color:var(--dim);letter-spacing:.03em}
+.pdef .btn.red small{color:#fff}
+.pib{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.pib svg{width:20px;height:20px;flex:none}
+.pcz b{color:var(--red)!important}
+.pcz{color:var(--red)}
+.pcend{margin-left:auto;min-height:40px;padding:0 12px;border:1px solid var(--line2);background:var(--panel2);font-family:var(--f-ui);font-size:15px;letter-spacing:.06em;color:var(--fg)}
+.pcend.on{background:var(--red);border-color:var(--red);color:#fff}
+
+/* Enchaînement de Régularité : rappel des attaques précédentes */
+.prchains{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:8px}
+.prchain{display:flex;flex-wrap:wrap;gap:2px 10px;font-family:var(--f-ui);font-size:14.5px;color:var(--mute);letter-spacing:.03em;background:rgba(255,255,255,.03);border-left:3px solid #6e5f3c;padding:5px 8px}
+.prchain>b{color:#d9bd7c;font-weight:600;margin-right:2px}
+.prchain span b{color:#fff}
