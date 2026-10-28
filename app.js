@@ -71,6 +71,7 @@ function render(){
   if(S.focus){const k=S.focus;S.focus=null;const el=app.querySelector(`[data-k="${k}"]`);if(el){if(el.tagName==="DETAILS")el.open=true;
     requestAnimationFrame(()=>{const top=$(".top"),off=(top?top.offsetHeight:0)+10;window.scrollTo(0,el.getBoundingClientRect().top+window.scrollY-off);el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1600)})}}
   pWake(S.view==="personnage"&&!!pCur()&&S.pTab==="combat");
+  if(S._pShowRes){S._pShowRes=false;pShowResult()}
   if(S._pFocus){const el=app.querySelector(S._pFocus);if(el){el.focus();const n=el.value.length;try{el.setSelectionRange(n,n)}catch(e){}}S._pFocus=null}
   if(S.view==="bazar"||S.view==="regles"||S.view==="lore"){const q=$("#q");if(q&&S._focusQ){q.focus();q.setSelectionRange(q.value.length,q.value.length);S._focusQ=false}}
 }
@@ -428,6 +429,14 @@ let pWakeLock=null;
 async function pWake(on){try{if(on&&!pWakeLock&&navigator.wakeLock){pWakeLock=await navigator.wakeLock.request("screen");pWakeLock.addEventListener("release",()=>{pWakeLock=null})}else if(!on&&pWakeLock){await pWakeLock.release();pWakeLock=null}}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")pWake(S.view==="personnage"&&!!pCur()&&S.pTab==="combat")});
 const pInitOpts=p=>({kind:"init",label:"Initiative"+(p.combat&&p.combat.on?" · round "+p.combat.round:""),calc:`PSY ${+p.a.PSY||0} + Réactivité ${+p.k["Réactivité"]||0}`,base:(+p.a.PSY||0)+(+p.k["Réactivité"]||0),diff:1});
+/* après un jet : faire défiler pour que le bloc de résultat soit entièrement visible sous l’en-tête collant */
+function pShowResult(){requestAnimationFrame(()=>{
+  const box=app.querySelector(".proll"),res=box&&[...box.querySelectorAll(".prres")];if(!res||!res.length)return;
+  const first=box.querySelector(".prchains")||box.querySelector(".prinfo")||res[0],last=box.querySelector(".prregul")||res[res.length-1];
+  const top=$(".top"),head=(top?top.getBoundingClientRect().bottom:0)+8,vh=window.innerHeight-8;
+  const a=first.getBoundingClientRect().top,b=last.getBoundingClientRect().bottom;
+  let dy=0;if(b-a<=vh-head){if(a<head)dy=a-head;else if(b>vh)dy=b-vh}else dy=a-head;
+  if(dy)window.scrollBy({top:dy,behavior:"smooth"})})}
 function pOpenRoll(p,at,o){S.pRoll=Object.assign({pid:p.id,at,mod:0,ego:0,diff:2,raf:0,cib:1,regul:0,res:null},o)}
 function pCombatAction(act,a,p){
   const k=a.dataset.k;
@@ -454,8 +463,8 @@ function pCombatAction(act,a,p){
       if(k==="rego")R.ego=Math.max(0,Math.min(3,p.pistes.ego.max-p.pistes.ego.v,R.ego+d));
       if(k==="rcib")R.cib=Math.max(1,Math.min(R.raf||1,(R.cib||1)+d));
       return true}
-    case "rgo":if(S.pRoll){S.pRoll.regul=0;S.pRoll.chain=[];pDoRoll(p)}return true;
-    case "rregul":if(S.pRoll){const R=S.pRoll;if(R.res)(R.chain=R.chain||[]).push({n:(R.regul||0)+1,res:R.res,diff:R.resDiff,rafDmg:R.resRafDmg||0});S.pRoll.regul=(S.pRoll.regul||0)+1;S.pRoll.raf=Math.min(S.pRoll.raf,S.pRoll.resRaf||0);pDoRoll(p)}return true;
+    case "rgo":if(S.pRoll){S.pRoll.regul=0;S.pRoll.chain=[];pDoRoll(p);S._pShowRes=true}return true;
+    case "rregul":if(S.pRoll){S._pShowRes=true;const R=S.pRoll;if(R.res)(R.chain=R.chain||[]).push({n:(R.regul||0)+1,res:R.res,diff:R.resDiff,rafDmg:R.resRafDmg||0});S.pRoll.regul=(S.pRoll.regul||0)+1;S.pRoll.raf=Math.min(S.pRoll.raf,S.pRoll.resRaf||0);pDoRoll(p)}return true;
     case "rraf":{const R=S.pRoll;if(!R)return true;R.raf=+a.dataset.v||0;R.cib=Math.min(R.cib||1,R.raf||1);R.res=null;R.regul=0;return true}
     case "reload":{const w=p.armes[+k],cap=pCap(w),ld=pLoaded(w);if(ld>=cap)return true;
       const am=pAmmoFor(p,w);if(!w.cal||!am.length){toast(w.cal?"Aucune munition « "+w.cal+" » dans l’Inventaire":"Calibre de l’arme non renseigné");return true}
