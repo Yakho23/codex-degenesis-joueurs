@@ -255,6 +255,10 @@ function pFiche(p){
    Blessures, Traumatismes, Sporulations : la piste stocke les cases cochées. */
 const P_ETATS=[["hemo","Hémorragie","Complications"],["incons","Inconscient","Complications"],["infect","Infection","Infections"],["poison","Empoisonné","Poisons, maladies, la Vorace"],["feu","En feu","Feu, chute, explosions"],["asphyx","Asphyxie","Noyade, fumée, gaz"],["lutte","Agrippé / étranglé","Lutte et étranglement"],["etourdi","Étourdi","Propriétés des armes (E–Z)"],["couvert","À couvert","Défense passive"]];
 const P_ABBR={PHY:"PHY",AGI:"AGI",CHA:"CHA",INT:"INT",PSY:"PSY",INS:"INS"};
+/* Maniement : bonus ou malus en D aux jets d’attaque et de défense avec l’arme (+1, +1d, +1 D, −2…) */
+function pMan(w){const s=String(w&&w.man||"").replace(/[\u2212\u2013\u2014\u2012]/g,"-").trim();const m=s.match(/([+\-])?\s*(\d+)\s*(?:d\b|d$)?/i);if(!m)return 0;return (m[1]==="-"?-1:1)*(+m[2])}
+const pManTxt=n=>n?` ${n>0?"+":"−"} Maniement ${Math.abs(n)}`:"";
+function pWV(p,w){const va=pVA(p,w.comp),n=pMan(w);if(!va)return null;return {v:Math.max(0,va.v+n),m:n,t:va.t+pManTxt(n)}}
 function pVA(p,comp){
   const m=String(comp||"").match(/^\s*([A-Za-zÉé]{3})\s*\+\s*(.+?)\s*$/);if(!m)return null;
   const at=m[1].toUpperCase().replace("É","E"),A=P_ATTR.find(x=>x[0]===at);if(!A)return null;
@@ -276,6 +280,12 @@ const pSpoPerm=p=>Math.max(0,+p.pistes.spo.perm||0);
 const pSpoStep=p=>`<span class="pstep"><button data-pa="perm" data-d="-1" aria-label="Moins un point permanent">−</button><output>${pSpoPerm(p)}</output><button data-pa="perm" data-d="1" aria-label="Plus un point permanent">+</button></span>`;
 const pSpoLep=p=>pSpoPerm(p)*2>=p.pistes.spo.max?"Points permanents à 50 % ou plus de l’échelle : le PJ devient un Léperos (Katharsys).":"";
 const pSpoFail=p=>{const R=S.pRoll;return !!(R&&R.at==="spo"&&R.pid===p.id&&R.res&&!R.permDone&&!R.res.some(r=>r.n>0&&r.succ>=R.resDiff))};
+const P_TIC={
+ ego:'<path d="M13.5 2.5L5 13.5h6l-1 8 8.5-11h-6z"/>',
+ spo:'<circle cx="12" cy="12" r="3"/><circle cx="12" cy="3.8" r="1.5"/><circle cx="12" cy="20.2" r="1.5"/><circle cx="4.9" cy="7.9" r="1.5"/><circle cx="19.1" cy="7.9" r="1.5"/><circle cx="4.9" cy="16.1" r="1.5"/><circle cx="19.1" cy="16.1" r="1.5"/><path d="M12 9V5.3M12 15v3.7M9.4 10.5L6.2 8.6M14.6 10.5l3.2-1.9M9.4 13.5l-3.2 1.9M14.6 13.5l3.2 1.9"/>',
+ bles:'<path d="M12 3s6.2 6.6 6.2 11.2a6.2 6.2 0 01-12.4 0C5.8 9.6 12 3 12 3z"/><path d="M9 14.5a3 3 0 003 3"/>',
+ trau:'<path d="M12 3a8 8 0 00-5 14.2V20.5h10v-3.3A8 8 0 0012 3z"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><path d="M10 20.5v-2.2M14 20.5v-2.2"/>'};
+const pTicon=k=>`<span class="ptri ${k}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P_TIC[k]||""}</svg></span>`;
 function pTrack(p,k,l){
   const t=p.pistes[k],ego=k==="ego",val=ego?t.max-t.v:t.v;
   let warn="";
@@ -290,7 +300,7 @@ function pTrack(p,k,l){
       +(ex>0?`<div class="ptrw">Excédent de ${ex} : test PSY + Foi/Volonté, difficulté ${ex}. En cas d’échec, le PJ note 1 point de Sporulation permanente.</div><button class="btn sm" data-pa="spotest">Lancer le test (difficulté ${ex})</button>`:"")
       +pRollPanel(p,"spo")
       +(pSpoFail(p)?`<div class="ptrw">Test raté : le Germe s’installe.</div><button class="btn red" data-pa="spoadd">Ajouter 1 point permanent</button>`:"");}
-  return `<div class="ptrk${ego?" ego":""}"><div class="ptrh"><span class="ptrl">${l}</span><b class="ptrv">${val}<small> / ${t.max}</small>${k==="spo"&&val>t.max?`<small class="pex"> +${val-t.max} en excédent</small>`:""}</b></div>
+  return `<div class="ptrk ${k}${ego?" ego":""}"><div class="ptrh">${pTicon(k)}<span class="ptrl">${l}</span><b class="ptrv">${val}<small> / ${t.max}</small>${k==="spo"&&val>t.max?`<small class="pex"> +${val-t.max} en excédent</small>`:""}</b></div>
    <div class="ptrb"><button class="tbtn" data-pa="trk" data-k="${k}" data-d="-1" aria-label="${ego?"Dépenser 1 point d’Ego":"Retirer 1"}">−</button>${trackBoxes(t.max,Math.min(val,t.max),ego?"ego":k,k==="spo"?Math.min(pSpoPerm(p),t.max):0)}<button class="tbtn" data-pa="trk" data-k="${k}" data-d="1" aria-label="${ego?"Récupérer 1 point d’Ego":"Ajouter 1"}">+</button></div>
    ${warn?`<div class="ptrw">${esc(warn)}</div>`:""}${spo}</div>`;
 }
@@ -301,7 +311,7 @@ const pRegul=w=>{const m=String(w&&w.prop||"").match(/r[ée]gularit[ée]\s*\((\d
 function pPlan(p,R){
   const w=R.w!=null?p.armes[R.w]:null,cap=w?pCap(w):0,rx=w&&cap?pRafale(w):0,raf=rx?R.raf:0;
   const cib=raf?Math.max(1,Math.min(R.cib||1,raf)):1;
-  const c=p.combat||{},egoInit=c.on&&c.ego&&!c.egoUsed&&R.kind!=="init"&&R.at!=="spo"&&!R.regul?c.ego:0; /* Ego dépensé à l’Initiative : +nD à la 1re action du round */
+  const c=p.combat||{},egoInit=c.on&&c.ego&&!c.egoUsed&&R.kind!=="init"&&R.at!=="spo"&&R.at!=="def:mentale"&&!R.regul?c.ego:0; /* Ego dépensé à l’Initiative : +nD à la 1re action du round */
   const pool=Math.max(0,R.base-pTrauMalus(p)+R.mod+(R.kind==="init"?R.ego:0)+egoInit+raf-2*(R.regul||0));
   /* dés partagés entre les cibles ; le reste de la division va aux premières cibles (1 dé chacune) */
   const per=Math.floor(pool/cib),rem=pool%cib,dice=Array.from({length:cib},(_,i)=>per+(i<rem?1:0));
@@ -375,7 +385,7 @@ function pRollPanel(p,at){
 /* exécute le jet (premier tir ou attaque de Régularité) */
 function pDoRoll(p){
   const R=S.pRoll;if(!R)return;const P=pPlan(p,R);
-  const counts=R.kind!=="init"&&R.at!=="spo"&&!R.regul&&p.combat&&p.combat.on;
+  const counts=R.kind!=="init"&&R.at!=="spo"&&R.at!=="def:mentale"&&!R.regul&&p.combat&&p.combat.on;
   if(counts&&pActLeft(p)<=0){toast(p.combat.init==null?"Lance d’abord l’Initiative":"Plus d’action ce round");return}
   if(P.cap&&pLoaded(P.w)<(P.raf||1))return;
   const egoSpent=R.kind==="init"?R.ego:0;
@@ -396,25 +406,29 @@ function pDoRoll(p){
 const pStep2=(k,v)=>`<span class="pstep"><button data-pa="rstep" data-k="${k}" data-d="-1" aria-label="Moins">−</button><output>${v}</output><button data-pa="rstep" data-k="${k}" data-d="1" aria-label="Plus">+</button></span>`;
 const SHIELD='<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M24 4l16 6v12c0 10.5-6.8 18.6-16 22C14.8 40.6 8 32.5 8 22V10z"/><path d="M24 4v40"/><path d="M8 22h32"/><path d="M15 13l4 4M33 13l-4 4" opacity=".7"/></svg>';
 /* Bloc armure : armures de l’Inventaire (portées par défaut), total des valeurs numériques, propriétés et mods */
+const BRAIN='<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 00-6 6 6 6 0 00-4 6c0 2.4 1 4.2 2.6 5.4A6.5 6.5 0 0012 32a6 6 0 006 6h1V8zM30 8a6 6 0 016 6 6 6 0 014 6c0 2.4-1 4.2-2.6 5.4A6.5 6.5 0 0136 32a6 6 0 01-6 6h-1V8z"/><path d="M24 8v32M13 17h6M29 17h6M13 27h6M29 27h6"/></svg>';
+const pMental=p=>{const A=+p.a.PSY||0,K=x=>+p.k[x]||0,c=K("Volonté")>K("Foi")?"Volonté":"Foi";return {c,v:A+K(c),t:`PSY ${A} + ${c} ${K(c)}`}};
+/* Défense mentale (Katharsys) : PSY + Foi ou Volonté, contre les influences mentales (Domination, Commandement…) */
+function pMentalBlock(p){const M=pMental(p);
+  return `<section class="psec parm pment"><div class="pst">Défense mentale</div>
+   <div class="parh"><span class="paric">${BRAIN}</span><div><div class="parv">${M.v}<small> D</small></div><div class="pil">${esc(M.t)}</div></div><button class="btn" data-pa="defroll" data-k="mentale">Jet de défense</button></div>
+   ${pRollPanel(p,"def:mentale")}</section>`}
+/* Potentiels qui ajoutent de l’armure : Cuir d’éléphant (+1 par niveau), Dur à cuire (armure additionnelle Carapace = niveau) */
+function pArmorPots(p){const lv=n=>p.pots.filter(x=>norm(String(x.n||"")).replace(/[^a-z]/g,"")===n).reduce((s,x)=>s+Math.max(0,+x.lvl||0),0);
+  return [["Cuir d’éléphant",lv("cuirdelephant")],["Carapace (Dur à cuire)",lv("duracuire")]].filter(x=>x[1]>0)}
 function pArmorBlock(p){
-  const L=p.armures.map((x,i)=>[x,i]);if(!L.length)return `<section class="psec parm"><div class="pst">Armure</div><div class="parh"><span class="paric off">${SHIELD}</span><div><div class="parv">0</div><div class="pil">Aucune armure dans l’Inventaire.</div></div></div></section>`;
-  const worn=L.filter(([x])=>x.porte!==false),tot=worn.reduce((s,[x])=>s+nb(x.va),0);
-  const fiche=String(p.stats.armure||"").trim();
+  const L=p.armures.map((x,i)=>[x,i]),bon=pArmorPots(p),bt=bon.reduce((s,x)=>s+x[1],0);
+  const worn=L.filter(([x])=>x.porte!==false),tot=worn.reduce((s,[x])=>s+nb(x.va),0)+bt;
   const props=[...new Set(worn.flatMap(([x])=>String(x.prop||"").split(/[,;]/).map(t=>t.trim()).filter(Boolean)))];
-  const rule=REGLES.find(r=>r.t==="Propriétés d’armure");
+  const chips=bon.map(([n,v])=>`<span class="bon">${esc(n)} +${v}</span>`).concat(props.map(t=>`<span>${esc(t)}</span>`));
   return `<section class="psec parm"><div class="pst">Armure</div>
-   <div class="parh"><span class="paric">${SHIELD}</span><div><div class="parv">${tot}<small> armure</small></div>${fiche&&fiche!==String(tot)?`<div class="pil">Total noté sur la fiche : ${esc(fiche)}</div>`:""}${props.length?`<div class="parp">${props.map(t=>`<span>${esc(t)}</span>`).join("")}</div>`:""}</div></div>
-   ${L.map(([x,i])=>{const mods=(Array.isArray(x.mods)?x.mods:[]).slice(0,Math.max(0,Math.floor(nb(x.empl)))).filter(m=>m&&String(m).trim());const on=x.porte!==false;
-     return `<div class="parl${on?"":" off"}"><button class="chip" data-pa="armor" data-k="${i}" aria-pressed="${on}">${on?"Portée":"Rangée"}</button><div class="parn"><span>${esc(x.nom||"Armure")}</span><small>${esc([x.va&&"Armure "+x.va,x.prop,x.enc&&"Enc. "+x.enc,mods.length&&"Mods : "+mods.join(", ")].filter(Boolean).join(" · "))}</small></div></div>`}).join("")}
-   ${props.length&&rule?`<details class="card"><summary><span class="t">Propriétés d’armure : la règle</span><span class="ref">${esc(rule.ref)}</span></summary><div class="body">${rule.h}</div></details>`:""}</section>`;
+   <div class="parh"><span class="paric${tot||L.length?"":" off"}">${SHIELD}</span><div><div class="parv">${tot}<small> armure</small>${worn.length?`<span class="parnm">${esc(worn.map(([x])=>x.nom||"Armure").join(" · "))}</span>`:""}</div>${chips.length?`<div class="parp">${chips.join("")}</div>`:(L.length?"":`<div class="pil">Aucune armure dans l’Inventaire.</div>`)}</div></div></section>`;
 }
 function pCombat(p){
-  const ST=[["init","Initiative"],["defm","Défense mentale"],["armure","Total armure"]].filter(([k])=>p.stats[k]);
   const c=p.combat||{};
   if(c.on&&c.init==null&&(!S.pRoll||S.pRoll.at!=="init"||S.pRoll.pid!==p.id))pOpenRoll(p,"init",pInitOpts(p));
   let h=(c.on?(S.pRoll&&S.pRoll.at==="init"&&S.pRoll.pid===p.id?`<section class="psec"><div class="pst">Round ${c.round} : initiative</div>${pRollPanel(p,"init")}</section>`:""):`<button class="roll pstart" data-pa="cstart">COMMENCER LE COMBAT</button>`)
-   +pArmorBlock(p)+`<section class="psec"><div class="pst">Condition</div>${P_PISTES.map(([k,l])=>pTrack(p,k,l)).join("")}
-   ${ST.length?`<div class="pstats">${ST.map(([k,l])=>`<span>${l} <b>${esc(p.stats[k])}</b></span>`).join("")}</div>`:""}
+   +pArmorBlock(p)+pMentalBlock(p)+`<section class="psec"><div class="pst">Condition</div>${P_PISTES.map(([k,l])=>pTrack(p,k,l)).join("")}
    </section>`;
   /* états temporaires */
   const et=Array.isArray(p.etats)?p.etats:[];
@@ -429,7 +443,7 @@ function pCombat(p){
    ${pRollPanel(p,"def:parade")}${pRollPanel(p,"def:esquive")}${pRollPanel(p,"def:autre")}</section>`;
   /* armes */
   h+=`<section class="psec"><div class="pst">Armes</div>${p.armes.length?p.armes.map((w,i)=>{
-    const va=pVA(p,w.comp),cap=pCap(w),ld=pLoaded(w),am=pAmmoFor(p,w);
+    const va=pWV(p,w),cap=pCap(w),ld=pLoaded(w),am=pAmmoFor(p,w);
     const stock=am.reduce((s,m)=>({c:s.c+(+m.chargeurs||0),b:s.b+(+m.balles||0)}),{c:0,b:0});
     return `<div class="pwpn"><div class="pwh"><span class="pwn">${esc(w.nom||"Arme")}</span>${va?`<span class="pwva">${va.v}D</span>`:""}</div>
      <div class="pil">${esc([w.deg&&"Dégâts "+w.deg,w.portee&&"Portée "+w.portee,va?va.t:(w.comp?w.comp+" (compétence non reconnue)":"Compétence d’attaque à renseigner")].filter(Boolean).join(" · "))}</div>
@@ -475,10 +489,10 @@ function pCombatAction(act,a,p){
     case "etat":{if(!Array.isArray(p.etats))p.etats=[];pSnap(p,"État");const i=p.etats.indexOf(k);if(i>=0)p.etats.splice(i,1);else p.etats.push(k);return true}
     case "cstart":pSnap(p,"Commencer le combat");p.combat={on:true,round:1,init:null,act:null,ego:0};pOpenRoll(p,"init",pInitOpts(p));window.scrollTo(0,0);return true;
     case "cnext":{const c=p.combat;if(!c||!c.on)return true;pSnap(p,"Round suivant");c.round++;c.init=null;c.act=null;c.ego=0;c.used=0;S.pOther=false;pOpenRoll(p,"init",pInitOpts(p));window.scrollTo(0,0);return true}
-    case "attack":{const w=p.armes[+k],va=pVA(p,w.comp);pOpenRoll(p,"w:"+k,{kind:"att",w:+k,label:"Attaque · "+(w.nom||"arme"),calc:va?va.t:"Compétence non reconnue : règle avec le modificateur",base:va?va.v:0});return true}
-    case "defroll":{const D={parade:["PHY","Lutte","Parade"],esquive:["AGI","Mobilité","Esquive"]}[k];if(!D)return true;S.pOther=false;
+    case "attack":{const w=p.armes[+k],va=pWV(p,w);pOpenRoll(p,"w:"+k,{kind:"att",w:+k,label:"Attaque · "+(w.nom||"arme"),calc:va?va.t:"Compétence non reconnue : règle avec le modificateur",base:va?va.v:0});return true}
+    case "defroll":{const D={parade:["PHY","Lutte","Parade"],esquive:["AGI","Mobilité","Esquive"],mentale:["PSY",pMental(p).c,"Défense mentale"]}[k];if(!D)return true;S.pOther=false;
       pOpenRoll(p,"def:"+k,{kind:"def",label:D[2],calc:`${P_ATTR.find(x=>x[0]===D[0])[1]} ${+p.a[D[0]]||0} + ${D[1]} ${+p.k[D[1]]||0}`,base:(+p.a[D[0]]||0)+(+p.k[D[1]]||0)});return true}
-    case "wparry":{const w=p.armes[+k];pOpenRoll(p,"wp:"+k,{kind:"def",label:"Parade · "+(w.nom||"arme"),calc:`Physique ${+p.a.PHY||0} + Corps à corps ${+p.k["Corps à corps"]||0}`,base:(+p.a.PHY||0)+(+p.k["Corps à corps"]||0)});return true}
+    case "wparry":{const w=p.armes[+k];pOpenRoll(p,"wp:"+k,{kind:"def",label:"Parade · "+(w.nom||"arme"),calc:`Physique ${+p.a.PHY||0} + Corps à corps ${+p.k["Corps à corps"]||0}`+pManTxt(pMan(w)),base:Math.max(0,(+p.a.PHY||0)+(+p.k["Corps à corps"]||0)+pMan(w))});return true}
     case "other":S.pOther=!S.pOther;if(!S.pOther&&S.pRoll&&S.pRoll.at==="def:autre")S.pRoll=null;return true;
     case "skroll":{const at=a.dataset.v,A=P_ATTR.find(x=>x[0]===at);pOpenRoll(p,"k:"+k,{kind:"sk",label:A[1]+" + "+k,calc:`${A[1]} ${+p.a[at]||0} + ${k} ${+p.k[k]||0}`,base:(+p.a[at]||0)+(+p.k[k]||0)});return true}
     case "rollx":S.pRoll=null;return true;
@@ -502,8 +516,26 @@ function pCombatAction(act,a,p){
   }
   return false;
 }
+const pSvg=b=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${b}</svg>`;
+const P_SIC={
+ "Parcours":pSvg('<path d="M4 7l8-4 8 4M4 12.5l8-4 8 4M4 18l8-4 8 4"/>'),
+ "Identité":pSvg('<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.8 16.5c.6-2 4.8-2 5.4 0M14 10h4M14 13.5h4"/>'),
+ "Attributs et compétences":pSvg('<path d="M12 2.5l8 4.6v9.8l-8 4.6-8-4.6V7.1z"/><circle cx="12" cy="12" r="2.6"/>'),
+ "Origines":pSvg('<circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="12" cy="18" r="2.4"/><path d="M8 7.5l3 8M16 7.5l-3 8M8.4 6h7.2"/>'),
+ "Potentiels":pSvg('<path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/>'),
+ "Condition":pSvg('<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0112 7.2 4.3 4.3 0 0119.5 10c0 5.4-7.5 10-7.5 10z"/>'),
+ "Modificateurs":pSvg('<path d="M4 7h8M18 7h2M4 17h2M12 17h8"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/>'),
+ "Complications":pSvg('<path d="M12 3.2l9.6 16.6H2.4z"/><path d="M12 10v4.5M12 17.4v.3"/>'),
+ "Fiche":pSvg('<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>')};
+const P_AIC={
+ PHY:pSvg('<path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/>'),
+ AGI:pSvg('<path d="M4 20c4-1 12-5 16-16-9 2-13 8-16 16zM9 15l5-5"/>'),
+ CHA:pSvg('<path d="M4 5h16v11H11l-5 4v-4H4z"/>'),
+ INT:pSvg('<path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z"/>'),
+ PSY:pSvg('<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+ INS:pSvg('<circle cx="12" cy="12" r="9"/><path d="M12 7l3 8-3-2-3 2z"/>')};
 function pSheet(p){
-  const E=S.pEdit,sec=(t,h)=>`<section class="psec"><div class="pst">${t}</div>${h}</section>`;
+  const E=S.pEdit,sec=(t,h)=>`<section class="psec pfs"><div class="pst"><span class="psti">${P_SIC[t]||""}</span>${t}</div>${h}</section>`;
   let h="";
   /* identité */
   h+=sec("Parcours",pParcours(p));
@@ -512,9 +544,9 @@ function pSheet(p){
   else{const L=P_ID.filter(([k])=>k!=="nom"&&!["rang","xp","lc"].includes(k)&&p[k]);const L2=L.filter(([k])=>!["culture","concept","culte"].includes(k));const her=p.her.filter(Boolean);
     h+=sec("Identité",pEmblems(p)+(L2.length?`<div class="pidg">${L2.map(([k,l])=>`<div><span>${l}</span><b>${esc(p[k])}</b></div>`).join("")}</div>`:"")+(her.length?`<div class="plbl">Héritages</div>${her.map(x=>{const f=herFind(x);return f?`<details class="card pot ppotc"><summary><span class="t">${esc(x)}<span class="pc">Bonus : ${esc(f.b||"—")}</span></span></summary><div class="body">${f.c?`<p><span class="k">Condition</span>${esc(f.c)}</p>`:""}${f.h?`<p><span class="k">Héritage</span>${esc(f.h)}</p>`:""}${f.i?`<p><span class="k">Inconvénient</span>${esc(f.i)}</p>`:""}</div></details>`:`<div class="ppot"><span>${esc(x)}</span></div>`}).join("")}`:"")+(!L.length&&!her.length?`<p class="pnone">Touche « Modifier » pour remplir la fiche.</p>`:""))}
   /* attributs */
-  h+=`<section class="psec"><div class="pst">Attributs et compétences</div>${E?`<p class="note">Touche une case pour régler la valeur, retouche la dernière pour l’enlever. ◆ marque un attribut privilégié.</p>`:""}<div class="pattrs">${P_ATTR.map(([id,n,sk])=>{
+  h+=`<section class="psec pfs"><div class="pst"><span class="psti">${P_SIC["Attributs et compétences"]}</span>Attributs et compétences</div>${E?`<p class="note">Touche une case pour régler la valeur, retouche la dernière pour l’enlever. ◆ marque un attribut privilégié.</p>`:""}<div class="pattrs">${P_ATTR.map(([id,n,sk])=>{
     const v=+p.a[id]||0,pr=!!p.priv[id];
-    return `<div class="pattr"><div class="pah">${E?`<button class="pmk${pr?" on":""}" data-pa="priv" data-k="${id}" aria-label="Attribut privilégié">${pr?"◆":"›"}</button>`:`<span class="pmk${pr?" on":""}">${pr?"◆":"›"}</span>`}<span class="pan">${n}</span>${boxes("a."+id,v,6,E)}</div>
+    return `<div class="pattr"><div class="pah">${E?`<button class="pmk${pr?" on":""}" data-pa="priv" data-k="${id}" aria-label="Attribut privilégié">${pr?"◆":"›"}</button>`:`<span class="pmk${pr?" on":""}">${pr?"◆":"›"}</span>`}<span class="pani">${P_AIC[id]||""}</span><span class="pan">${n}</span>${boxes("a."+id,v,6,E)}</div>
       ${sk.map(s=>E?`<div class="psk"><span>${s}</span>${boxes("k."+s,+p.k[s]||0,6,E)}</div>`:`<button class="psk pskb" data-pa="skroll" data-k="${s}" data-v="${id}"><span>${s}</span>${boxes("k."+s,+p.k[s]||0,6,false)}</button>${pRollPanel(p,"k:"+s)}`).join("")}</div>`}).join("")}</div>${E?"":`<p class="note">Touche une compétence pour lancer les dés (attribut + compétence).</p>`}</section>`;
   /* origines */
   h+=sec("Origines",P_ORIG.map(o=>`<div class="psk"><span>${o}</span>${boxes("o."+o,+p.o[o]||0,6,E)}</div>`).join(""));
@@ -525,14 +557,13 @@ function pSheet(p){
       :`<div class="ppot"><span>${esc(x.n||"—")}</span>${lv}</div>`}).join(""):`<p class="pnone">Aucun Potentiel.</p>`);
   /* condition : maximum réglé + formule de calcul */
   h+=sec("Condition",P_PISTES.map(([k,l])=>{const f=pFormule(p,k),mx=p.pistes[k].max;
-    return `<div class="prow pcond"><span class="pcl">${l}<small>${esc(f.t)} = <b>${f.v}</b>${f.v!==mx?` · réglé : ${mx}`:""}</small></span>${E?`<span class="pmx">${pStep("pistes."+k+".max",mx)}${f.v>0&&f.v!==mx?`<button class="btn sm" data-pa="setmax" data-k="${k}" data-v="${f.v}">= ${f.v}</button>`:""}</span>`:`<b>${mx} cases</b>`}</div>`}).join("")+`<div class="prow pcond pperm2"><span class="pcl">Sporulation permanente<small>points que aucun EX ne peut effacer · 50 % du maximum = Léperos</small></span>${pSpoStep(p)}</div>`+(pSpoLep(p)?`<div class="ptrw">${esc(pSpoLep(p))}</div>`:"")+(E?`<p class="note">Le calcul ne tient pas compte des bonus d’Héritage ou de Potentiel (Impitoyable : Égo +6…) : règle le maximum avec + / −.</p>`:""));
+    return `<div class="prow pcond pcc ${k}">${pTicon(k)}<span class="pcl">${l}<small>${esc(f.t)} = <b>${f.v}</b>${f.v!==mx?` · réglé : ${mx}`:""}</small></span>${E?`<span class="pmx">${pStep("pistes."+k+".max",mx)}${f.v>0&&f.v!==mx?`<button class="btn sm" data-pa="setmax" data-k="${k}" data-v="${f.v}">= ${f.v}</button>`:""}</span>`:`<b class="pcmx">${mx}<small> cases</small></b>`}</div>`+(k==="spo"?`<div class="prow pcond pperm2"><span class="pcl">Sporulation permanente<small>aucun EX ne peut l’effacer · 50 % du maximum = Léperos</small></span>${pSpoStep(p)}</div>`+(pSpoLep(p)?`<div class="ptrw">${esc(pSpoLep(p))}</div>`:""):"")}).join("")+(E?`<p class="note">Le calcul ne tient pas compte des bonus d’Héritage ou de Potentiel (Impitoyable : Égo +6…) : règle le maximum avec + / −.</p>`:""));
   /* stats, modificateurs, complications */
-  const ST=[["init","Initiative"],["defm","Défense mentale"],["armure","Total armure"]];
-  if(E)h+=sec("Stats",`<div class="pgrid">${ST.map(([k,l])=>`<label class="pl"><span>${l}</span>${pIn("stats."+k,p.stats[k])}</label>`).join("")}</div>`)+sec("Modificateurs",pTa("modif",p.modif,"Un modificateur par ligne"))+sec("Complications",pTa("compl",p.compl,"Une complication par ligne"));
-  else{const st=ST.filter(([k])=>p.stats[k]);if(st.length)h+=sec("Stats",`<dl class="statl">${st.map(([k,l])=>`<dt>${l}</dt><dd>${esc(p.stats[k])}</dd>`).join("")}</dl>`);
+  if(E)h+=sec("Modificateurs",pTa("modif",p.modif,"Un modificateur par ligne"))+sec("Complications",pTa("compl",p.compl,"Une complication par ligne"));
+  else{
     if(p.modif.trim())h+=sec("Modificateurs",`<p class="ptxt">${esc(p.modif)}</p>`);if(p.compl.trim())h+=sec("Complications",`<p class="ptxt">${esc(p.compl)}</p>`)}
   /* outils */
-  h+=`<section class="psec"><div class="pst">Fiche</div><div class="btnrow"><button class="btn" data-pa="export">Exporter</button><button class="btn" data-pa="dup">Dupliquer</button><button class="btn" data-pa="arch">${p.arch?"Désarchiver":"Archiver"}</button>${pConfBtn("delp","Supprimer")}</div><p class="note">Exporter crée un fichier à garder en sauvegarde ou à importer sur un autre téléphone.</p></section>`;
+  h+=`<section class="psec pfs"><div class="pst"><span class="psti">${P_SIC["Fiche"]}</span>Fiche</div><div class="btnrow"><button class="btn" data-pa="export">Exporter</button><button class="btn" data-pa="dup">Dupliquer</button><button class="btn" data-pa="arch">${p.arch?"Désarchiver":"Archiver"}</button>${pConfBtn("delp","Supprimer")}</div><p class="note">Exporter crée un fichier à garder en sauvegarde ou à importer sur un autre téléphone.</p></section>`;
   return h;
 }
 /* balles chargées dans les armes du même calibre que la ligne de munitions */
@@ -546,8 +577,14 @@ function pItemLine(key,x){
   if(key==="equip")return [x.enc&&"Enc. "+x.enc,x.combat&&"combat"].filter(Boolean);
   return [x.act&&"Activation : "+x.act].filter(Boolean);
 }
+const P_LIC={
+ armes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/></svg>',
+ armures:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z"/></svg>',
+ mun:IC_BALL,
+ equip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M8 7V5.5A2.5 2.5 0 0110.5 3h3A2.5 2.5 0 0116 5.5V7"/><rect x="4.5" y="7" width="15" height="14" rx="3"/><path d="M4.5 13h15M10 13v2h4v-2"/></svg>'};
+const P_WGT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M7 8h10l3 12H4z"/><circle cx="12" cy="5.5" r="2.5"/></svg>';
 function pInv(p){
-  const E=S.pEdit;let h=`<div class="penc">Encombrement total <b>${String(Math.round(pEnc(p)*10)/10).replace(".",",")}</b></div>`;
+  const E=S.pEdit;let h=`<div class="penc"><span class="penci">${P_WGT}</span><span class="pencl">Encombrement total</span><b>${String(Math.round(pEnc(p)*10)/10).replace(".",",")}</b></div>`;
   Object.entries(P_LISTS).forEach(([key,L])=>{
     const rows=p[key].map((x,i)=>{const base=key+"."+i;
       const nm=(key==="armes"||key==="armures")?Math.max(0,Math.min(12,Math.floor(nb(x.empl)))):0,mods=Array.isArray(x.mods)?x.mods:[];
@@ -557,10 +594,10 @@ function pInv(p){
       if(E&&!(S.pOpen||{})[okey]){const sum=pItemLine(key,x).concat(nm?[nm+" mod"+(nm>1?"s":"")]:[]);const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur")).map(([f,l])=>(key==="mun"?(f==="chargeurs"?"charg. ":"balles "):"×")+pQtyShow(p,key,f,x));
         return `<button class="pitem pcol" data-pa="itemopen" data-k="${okey}"><span class="pcoln"><span class="pin2">${esc(x.nom||"Sans nom")}</span>${sum.length||q.length?`<small>${esc(q.concat(sum).join(" · "))}</small>`:""}</span><span class="pcolm">Modifier ›</span></button>`}
       if(E)return `<div class="pitem ed"><button class="btn sm pfold" data-pa="itemopen" data-k="${okey}">‹ Replier ${esc(x.nom||"")}</button><div class="pgrid">${Lf.map(([f,l,t])=>t==="b"?`<label class="pchk"><input type="checkbox" data-pf="${base}.${f}"${x[f]?" checked":""}> ${l}</label>`:t==="n"?`<label class="pl"><span>${l}</span>${pStep(base+"."+f,pQtyShow(p,key,f,x))}</label>`:`<label class="pl${f==="nom"||f==="prop"||f==="effet"||f==="fonc"?" wide":""}"><span>${l}</span>${f==="prop"||f==="effet"||f==="fonc"?pTa(base+"."+f,x[f]||""):pIn(base+"."+f,x[f]||"")}</label>`).join("")}</div>${modsEd?`<div class="pmods">${modsEd}</div>`:""}<div class="btnrow">${pConfBtn("del:"+base,"Retirer","sm")}</div></div>`;
-      const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur"));const det=Lf.filter(([f,,t])=>f!=="nom"&&t!=="n"&&t!=="b"&&x[f]);
-      return `<div class="pitem"><div class="pih${key==="mun"?" mun":""}"><span class="pin2">${esc(x.nom||"—")}</span>${q.map(([f,l])=>`<span class="pq${pQtyShow(p,key,f,x)<=0?" low":""}" title="${l}">${pStep(base+"."+f,pQtyShow(p,key,f,x))}<small>${key==="mun"?(f==="chargeurs"?"charg.":"balles au total"):key==="armes"?"/ "+pCap(x)+" dans l’arme":""}</small></span>`).join("")}</div>${pItemLine(key,x).length?`<div class="pil">${esc(pItemLine(key,x).join(" · "))}</div>`:""}${modsRd.length?`<div class="pil pml">Mods : ${esc(modsRd.join(" · "))}</div>`:nm?`<div class="pil pml">${nm} emplacement${nm>1?"s":""} de mod libre${nm>1?"s":""}</div>`:""}${det.length?`<details class="pdet"><summary>Détails</summary><dl class="statl">${det.map(([f,l])=>`<dt>${l}</dt><dd>${esc(x[f])}</dd>`).join("")}</dl></details>`:""}</div>`}).join("");
+      const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur"));const det=key==="mun"?[]:Lf.filter(([f,,t])=>f!=="nom"&&t!=="n"&&t!=="b"&&x[f]);
+      return `<div class="pitem ${key}"><div class="pih${key==="mun"?" mun":""}"><span class="pin2">${esc(x.nom||"—")}</span>${q.map(([f,l])=>`<span class="pq${pQtyShow(p,key,f,x)<=0?" low":""}" title="${l}">${pStep(base+"."+f,pQtyShow(p,key,f,x))}<small>${key==="mun"?(f==="chargeurs"?"charg.":"balles au total"):key==="armes"?"/ "+pCap(x)+" dans l’arme":""}</small></span>`).join("")}</div>${pItemLine(key,x).length||modsRd.length||nm?`<div class="pchips">${pItemLine(key,x).map(t=>`<span>${esc(t)}</span>`).join("")}${modsRd.map(m=>`<span class="mod">Mod · ${esc(m)}</span>`).join("")}${!modsRd.length&&nm?`<span class="mod libre">${nm} emplacement${nm>1?"s":""} de mod libre${nm>1?"s":""}</span>`:""}</div>`:""}${det.length?`<details class="pdet"><summary>Détails</summary><dl class="statl">${det.map(([f,l])=>`<dt>${l}</dt><dd>${esc(x[f])}</dd>`).join("")}</dl></details>`:""}</div>`}).join("");
     const bz=S.pBz&&S.pBz.list===key?pBzPanel(key):"";
-    h+=`<section class="psec"><div class="pst">${L.t}</div>${rows||`<p class="pnone">Rien pour l’instant.</p>`}${E?`<div class="btnrow"><button class="btn sm" data-pa="add" data-k="${key}">+ Ajouter</button><button class="btn sm${bz?" red":""}" data-pa="bz" data-k="${key}">${bz?"Fermer le Bazar":"+ Depuis le Bazar"}</button></div>${bz}`:""}</section>`;
+    h+=`<section class="psec pinvs ${key}"><div class="pst"><span class="psti">${P_LIC[key]||""}</span>${L.t}</div>${rows||`<p class="pnone">Rien pour l’instant.</p>`}${E?`<div class="btnrow"><button class="btn sm" data-pa="add" data-k="${key}">+ Ajouter</button><button class="btn sm${bz?" red":""}" data-pa="bz" data-k="${key}">${bz?"Fermer le Bazar":"+ Depuis le Bazar"}</button></div>${bz}`:""}</section>`;
   });
   return h;
 }
@@ -597,7 +634,13 @@ function pAction(a){
     case "unarch":{const x=PERSOS.find(o=>o.id===k);if(x){x.arch=false;pSave(true)}break}
     case "box":{const v=+a.dataset.v,cur=+pGet(p,k)||0;pSet(p,k,cur===v?v-1:v);break}
     case "priv":p.priv[k]=!p.priv[k];break;
-    case "inc":{const cur=+pGet(p,k)||0;let v=cur+(+a.dataset.d);v=Math.max(k.endsWith(".max")?1:0,Math.min(k.endsWith(".max")?60:9999,v));
+    case "inc":{const mm=k.match(/^mun\.(\d+)\.balles$/);
+      if(mm){const x=p.mun[+mm[1]];if(x){const T=pQtyShow(p,"mun","balles",x),T2=Math.max(0,Math.min(9999,T+(+a.dataset.d)));if(T2===T)break;
+        /* le total ne dépend pas du chargeur : en dessous des balles chargées, on retire aussi des balles dans les armes du même calibre */
+        const ld=pMunLoaded(p,x);let cut=Math.max(0,ld-T2);x.balles=Math.max(0,T2-ld);
+        if(cut){const c=calKey(x.nom);p.armes.forEach(w=>{if(!cut||!pCap(w)||!calKey(w.cal)||!(calKey(w.cal).includes(c)||c.includes(calKey(w.cal))))return;const t=Math.min(cut,pLoaded(w));w.cur=pLoaded(w)-t;cut-=t})}}
+        break}
+      const cur=+pGet(p,k)||0;let v=cur+(+a.dataset.d);v=Math.max(k.endsWith(".max")?1:0,Math.min(k.endsWith(".max")?60:9999,v));
       if(/^armes\.\d+\.cur$/.test(k))v=Math.min(v,pCap(pGet(p,k.replace(/\.cur$/,""))));pSet(p,k,v);
       if(k.startsWith("pistes.")&&k.endsWith(".max")){const t=pGet(p,k.replace(/\.max$/,""));t.v=Math.min(t.v,t.max)}break}
     case "genname":{const C=P_NOMS.cultures,ks=Object.keys(C);if(!ks.length)break;const c=C[p.culture]?p.culture:pick(ks),sx=p.sexe==="Masculin"?"h":p.sexe==="Féminin"?"f":pick(["h","f"]);p.nom=pick(C[c][sx])+" "+pick(C[c].n);break}
