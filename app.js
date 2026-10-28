@@ -157,7 +157,7 @@ const herFind=n=>{const q=norm(n).trim();return q?P_HER.find(h=>norm(h.n)===q)||
 const P_LISTS={
  armes:{t:"Armes",f:[["nom","Nom"],["comp","Compétence d’attaque"],["man","Maniement"],["portee","Portée"],["deg","Dégâts"],["charg","Chargeur"],["cal","Calibre"],["cur","Balles dans l’arme","n"],["prop","Propriétés"],["enc","Enc."],["tech","Tech"],["empl","Empl."]],bz:r=>r._grp==="armes"&&r._cat!=="Munitions"},
  armures:{t:"Armures",f:[["nom","Nom"],["va","Valeur d’armure"],["prop","Propriétés"],["enc","Enc."],["tech","Tech"],["empl","Empl."]],bz:r=>r._grp==="protection"},
- mun:{t:"Munitions",f:[["nom","Calibre ou type"],["chargeurs","Chargeurs (indicatif)","n"],["balles","Balles","n"],["deg","Dégâts"]],bz:r=>r._cat==="Munitions"},
+ mun:{t:"Munitions",f:[["nom","Calibre ou type"],["chargeurs","Chargeurs (indicatif)","n"],["balles","Balles (total, armes comprises)","n"],["deg","Dégâts"]],bz:r=>r._cat==="Munitions"},
  equip:{t:"Équipement et consommables",f:[["nom","Nom"],["qte","Quantité","n"],["enc","Enc."],["effet","Effet ou note"],["combat","À portée de main en combat","b"]],bz:r=>["equipement","medical"].includes(r._grp)||(r._grp==="armes"&&r._cat==="Agents chimiques")},
 };
 const P_FROMBZ={
@@ -509,10 +509,14 @@ function pSheet(p){
   h+=`<section class="psec"><div class="pst">Fiche</div><div class="btnrow"><button class="btn" data-pa="export">Exporter</button><button class="btn" data-pa="dup">Dupliquer</button><button class="btn" data-pa="arch">${p.arch?"Désarchiver":"Archiver"}</button>${pConfBtn("delp","Supprimer")}</div><p class="note">Exporter crée un fichier à garder en sauvegarde ou à importer sur un autre téléphone.</p></section>`;
   return h;
 }
+/* balles chargées dans les armes du même calibre que la ligne de munitions */
+function pMunLoaded(p,x){const c=calKey(x.nom);if(!p||!c)return 0;return p.armes.filter(w=>pCap(w)&&calKey(w.cal)&&(calKey(w.cal).includes(c)||c.includes(calKey(w.cal)))).reduce((s,w)=>s+pLoaded(w),0)}
+/* valeur affichée d’un compteur : pour les munitions, le total (réserve + balles chargées) ; les + / − modifient la réserve */
+const pQtyShow=(p,key,f,x)=>key==="mun"&&f==="balles"?(+x.balles||0)+pMunLoaded(p,x):+x[f]||0;
 function pItemLine(key,x){
   if(key==="armes")return [x.deg&&"Dég. "+x.deg,x.portee&&"Portée "+x.portee,x.charg&&(pCap(x)?"Chargée "+pLoaded(x)+"/"+pCap(x):"Charg. "+x.charg),x.cal&&"Cal. "+x.cal,x.man&&"Man. "+x.man].filter(Boolean);
   if(key==="armures")return [x.va&&"Armure "+x.va,x.enc&&"Enc. "+x.enc].filter(Boolean);
-  if(key==="mun")return [x.deg&&"Dég. "+x.deg];
+  if(key==="mun")return [x.deg&&"Dég. "+x.deg].filter(Boolean);
   if(key==="equip")return [x.enc&&"Enc. "+x.enc,x.combat&&"combat"].filter(Boolean);
   return [x.act&&"Activation : "+x.act].filter(Boolean);
 }
@@ -524,11 +528,11 @@ function pInv(p){
       const modsEd=nm?`<div class="plbl wide">Mods (${nm} emplacement${nm>1?"s":""})</div>${Array.from({length:nm},(_,j)=>pIn(base+".mods."+j,mods[j]||"","Mod "+(j+1))).join("")}`:"";
       const modsRd=mods.slice(0,nm).filter(m=>m&&String(m).trim());
       const okey=p.id+":"+base,Lf=L.f.filter(([f])=>!(key==="armes"&&f==="cur"&&!pCap(x)));
-      if(E&&!(S.pOpen||{})[okey]){const sum=pItemLine(key,x).concat(nm?[nm+" mod"+(nm>1?"s":"")]:[]);const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur")).map(([f,l])=>(key==="mun"?(f==="chargeurs"?"charg. ":"balles "):"×")+(+x[f]||0));
+      if(E&&!(S.pOpen||{})[okey]){const sum=pItemLine(key,x).concat(nm?[nm+" mod"+(nm>1?"s":"")]:[]);const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur")).map(([f,l])=>(key==="mun"?(f==="chargeurs"?"charg. ":"balles "):"×")+pQtyShow(p,key,f,x));
         return `<button class="pitem pcol" data-pa="itemopen" data-k="${okey}"><span class="pcoln"><span class="pin2">${esc(x.nom||"Sans nom")}</span>${sum.length||q.length?`<small>${esc(q.concat(sum).join(" · "))}</small>`:""}</span><span class="pcolm">Modifier ›</span></button>`}
-      if(E)return `<div class="pitem ed"><button class="btn sm pfold" data-pa="itemopen" data-k="${okey}">‹ Replier ${esc(x.nom||"")}</button><div class="pgrid">${Lf.map(([f,l,t])=>t==="b"?`<label class="pchk"><input type="checkbox" data-pf="${base}.${f}"${x[f]?" checked":""}> ${l}</label>`:t==="n"?`<label class="pl"><span>${l}</span>${pStep(base+"."+f,+x[f]||0)}</label>`:`<label class="pl${f==="nom"||f==="prop"||f==="effet"||f==="fonc"?" wide":""}"><span>${l}</span>${f==="prop"||f==="effet"||f==="fonc"?pTa(base+"."+f,x[f]||""):pIn(base+"."+f,x[f]||"")}</label>`).join("")}</div>${modsEd?`<div class="pmods">${modsEd}</div>`:""}<div class="btnrow">${pConfBtn("del:"+base,"Retirer","sm")}</div></div>`;
+      if(E)return `<div class="pitem ed"><button class="btn sm pfold" data-pa="itemopen" data-k="${okey}">‹ Replier ${esc(x.nom||"")}</button><div class="pgrid">${Lf.map(([f,l,t])=>t==="b"?`<label class="pchk"><input type="checkbox" data-pf="${base}.${f}"${x[f]?" checked":""}> ${l}</label>`:t==="n"?`<label class="pl"><span>${l}</span>${pStep(base+"."+f,pQtyShow(p,key,f,x))}</label>`:`<label class="pl${f==="nom"||f==="prop"||f==="effet"||f==="fonc"?" wide":""}"><span>${l}</span>${f==="prop"||f==="effet"||f==="fonc"?pTa(base+"."+f,x[f]||""):pIn(base+"."+f,x[f]||"")}</label>`).join("")}</div>${modsEd?`<div class="pmods">${modsEd}</div>`:""}<div class="btnrow">${pConfBtn("del:"+base,"Retirer","sm")}</div></div>`;
       const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur"));const det=Lf.filter(([f,,t])=>f!=="nom"&&t!=="n"&&t!=="b"&&x[f]);
-      return `<div class="pitem"><div class="pih"><span class="pin2">${esc(x.nom||"—")}</span>${q.map(([f,l])=>`<span class="pq${(+x[f]||0)<=0?" low":""}" title="${l}">${pStep(base+"."+f,+x[f]||0)}<small>${key==="mun"?(f==="chargeurs"?"charg.":"balles"):key==="armes"?"/ "+pCap(x)+" dans l’arme":""}</small></span>`).join("")}</div>${pItemLine(key,x).length?`<div class="pil">${esc(pItemLine(key,x).join(" · "))}</div>`:""}${modsRd.length?`<div class="pil pml">Mods : ${esc(modsRd.join(" · "))}</div>`:nm?`<div class="pil pml">${nm} emplacement${nm>1?"s":""} de mod libre${nm>1?"s":""}</div>`:""}${det.length?`<details class="pdet"><summary>Détails</summary><dl class="statl">${det.map(([f,l])=>`<dt>${l}</dt><dd>${esc(x[f])}</dd>`).join("")}</dl></details>`:""}</div>`}).join("");
+      return `<div class="pitem"><div class="pih"><span class="pin2">${esc(x.nom||"—")}</span>${q.map(([f,l])=>`<span class="pq${pQtyShow(p,key,f,x)<=0?" low":""}" title="${l}">${pStep(base+"."+f,pQtyShow(p,key,f,x))}<small>${key==="mun"?(f==="chargeurs"?"charg.":"balles au total"):key==="armes"?"/ "+pCap(x)+" dans l’arme":""}</small></span>`).join("")}</div>${pItemLine(key,x).length?`<div class="pil">${esc(pItemLine(key,x).join(" · "))}</div>`:""}${modsRd.length?`<div class="pil pml">Mods : ${esc(modsRd.join(" · "))}</div>`:nm?`<div class="pil pml">${nm} emplacement${nm>1?"s":""} de mod libre${nm>1?"s":""}</div>`:""}${det.length?`<details class="pdet"><summary>Détails</summary><dl class="statl">${det.map(([f,l])=>`<dt>${l}</dt><dd>${esc(x[f])}</dd>`).join("")}</dl></details>`:""}</div>`}).join("");
     const bz=S.pBz&&S.pBz.list===key?pBzPanel(key):"";
     h+=`<section class="psec"><div class="pst">${L.t}</div>${rows||`<p class="pnone">Rien pour l’instant.</p>`}${E?`<div class="btnrow"><button class="btn sm" data-pa="add" data-k="${key}">+ Ajouter</button><button class="btn sm${bz?" red":""}" data-pa="bz" data-k="${key}">${bz?"Fermer le Bazar":"+ Depuis le Bazar"}</button></div>${bz}`:""}</section>`;
   });
