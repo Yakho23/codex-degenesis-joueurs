@@ -220,6 +220,11 @@ function potSelect(path,val,culte){
 }
 
 const IC_BALL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M9 21V9c0-3 1.3-5.5 3-7 1.7 1.5 3 4 3 7v12z"/><path d="M8 21h8M9 12h6"/></svg>';
+const IC_SONIC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5v5h3.5L11 18.5v-13L6.5 9.5z"/><path d="M14.5 9a4 4 0 010 6"/><path d="M17.5 6.5a8 8 0 010 11"/><path d="M20.5 4a11.5 11.5 0 010 16" opacity=".6"/></svg>';
+/* armes soniques (Raccordeur, Vocodeur) : jet Technologie puis jet Domination, dégâts 1 + DC Technologie + DC Domination */
+const pSonic=w=>!!w&&/technologie/.test(norm(w.comp))&&/domination/.test(norm(w.comp));
+const pSonicEgo=w=>/vocodeur/.test(norm(w.nom||""))||(/ego/.test(norm(w.deg||""))&&!/trauma/.test(norm(w.deg||"")));
+const pSonicDeg=w=>pSonicEgo(w)?["d’Ego","Ego"]:["de Traumatisme","Traumatisme"];
 const IC_KNIFE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M20 3L9.5 13.5l1.8 1.8C17 12 19.5 7.5 20 3z"/><path d="M9.5 13.5L7 16"/><path d="M5.2 14.6l4.2 4.2"/><path d="M7.3 16.7L4 20"/></svg>';
 const IC_PARRY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M12 2l8 3v6c0 5.3-3.4 9.3-8 11-4.6-1.7-8-5.7-8-11V5z"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>';
 const IC_DODGE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="14" cy="4.5" r="2"/><path d="M13 8l-3 4 3 3-1 6"/><path d="M10 12l-4 1M13 15l4 2"/><path d="M3 7h4M2 10h3" opacity=".6"/></svg>';
@@ -309,9 +314,9 @@ function pTrack(p,k,l){
    Régularité (nDC) : avec n déclencheurs, nouvelle attaque immédiate à −2D (cumulatif). (Katharsys, propriétés des armes) */
 const pRegul=w=>{const m=String(w&&w.prop||"").match(/r[ée]gularit[ée]\s*\((\d+)\s*DC\)/i);return m?+m[1]:0};
 function pPlan(p,R){
-  const w=R.w!=null?p.armes[R.w]:null,cap=w?pCap(w):0,rx=w&&cap?pRafale(w):0,raf=rx?R.raf:0;
+  const w=R.w!=null?p.armes[R.w]:null,cap=w&&R.sonic!==2?pCap(w):0,rx=w&&cap?pRafale(w):0,raf=rx?R.raf:0;
   const cib=raf?Math.max(1,Math.min(R.cib||1,raf)):1;
-  const c=p.combat||{},egoInit=c.on&&c.ego&&!c.egoUsed&&R.kind!=="init"&&R.at!=="spo"&&R.at!=="def:mentale"&&!R.regul?c.ego:0; /* Ego dépensé à l’Initiative : +nD à la 1re action du round */
+  const c=p.combat||{},egoInit=c.on&&c.ego&&!c.egoUsed&&R.kind!=="init"&&R.at!=="spo"&&R.at!=="def:mentale"&&R.sonic!==2&&!R.regul?c.ego:0; /* Ego dépensé à l’Initiative : +nD à la 1re action du round */
   const pool=Math.max(0,R.base-pTrauMalus(p)+R.mod+(R.kind==="init"?R.ego:0)+egoInit+raf-2*(R.regul||0));
   /* dés partagés entre les cibles ; le reste de la division va aux premières cibles (1 dé chacune) */
   const per=Math.floor(pool/cib),rem=pool%cib,dice=Array.from({length:cib},(_,i)=>per+(i<rem?1:0));
@@ -360,6 +365,11 @@ function pRollPanel(p,at){
     res=`<div class="prres"><div class="verdict"><span class="big ok">${DG("Initiative "+r.succ)}</span><span class="note">${r.n}D</span></div>
      <div class="tally"><span><b>${r.succ}</b>succès</span><span><b>${r.trig}</b>déclencheurs</span><span><b>${1+Math.floor(r.trig/2)}</b>action${r.trig>=2?"s":""}</span></div>${diceView(r)}
      <div class="note">${r.succ?`Score d’Initiative ${r.succ}`:"Aucun succès : une action à Initiative 0"} · ${1+Math.floor(r.trig/2)} action${r.trig>=2?"s":""} ce round (1 + 1 par tranche de 2 déclencheurs).</div></div>`}
+  else if(R.res&&R.sonic){const r=R.res[0],w=P.w,d=pSonicDeg(w),t=(R.tech||{}).trig||0;
+    if(R.sonic===1){const ok=r.n>0&&r.succ>=1;
+      res=pOneRes(r,1,"sonic",w,0,"Réglage · INT + Technologie",p)+(ok?`<div class="prson"><div class="note"><b>${r.trig}</b> déclencheur${r.trig>1?"s":""} de Technologie reportés dans les dégâts (ils ne comptent pas comme succès pour la Domination).</div><button class="btn red pib" data-pa="rson">${IC_SONIC}Jet de Domination</button></div>`:`<div class="ptrw">Réglage raté : l’attaque échoue.</div>`)}
+    else{const tot=1+t+r.trig;
+      res=pOneRes(r,1,"sonic",w,0,"Domination · PSY + Domination",p).replace(/ · difficulté 1/,"")+(r.succ>0?`<div class="prson"><div class="prdmg"><b>Défense de la cible</b> : PSY + Foi/Volonté, difficulté <b>${r.succ}</b>.</div><div class="prdmg">Dégâts : 1 + ${t} (DC Technologie) + ${r.trig} (DC Domination) = <b>${tot}</b> point${tot>1?"s":""} ${d[0]}</div></div>`:`<div class="ptrw">Aucun succès en Domination : la cible n’est pas touchée.</div>`)}}
   else if(R.res){
     const n=R.res.length;
     res=(R.chain&&R.chain.length?`<div class="prchains">${R.chain.map(c=>pChainLine(c,P.w,p)).join("")}</div>`:"")+(R.resInfo?`<div class="prinfo">${esc(R.resInfo)}</div>`:"")+R.res.map((r,i)=>pOneRes(r,R.resDiff,R.kind,P.w,pRd(R.resRafDmg,i),n>1?"Cible "+(i+1):"",p)).join("");
@@ -381,14 +391,14 @@ function pRollPanel(p,at){
    ${mode}
    <div class="prrow"><span>Modificateur</span>${pStep2("rmod",R.mod>0?"+"+R.mod:R.mod)}</div>
    ${R.kind!=="init"?"":`<div class="prrow"><span>Ego dépensé <small>(+1D, max 3 · reste ${egoLeft})</small></span>${pStep2("rego",R.ego)}</div>`}
-   ${R.kind==="init"||R.kind==="def"?"":`<div class="prdifw"><span>Difficulté</span><div class="diffs prdif">${[1,2,3,4,5,6,7,8,9,10].map(d=>`<button class="chip" data-pa="rdiff" data-v="${d}" aria-pressed="${R.diff===d}">${d}</button>`).join("")}</div></div>`}
-   ${R.kind==="att"&&P.cap?`<div class="note">Chargeur ${ld}/${P.cap} · ${P.raf||1} balle${(P.raf||1)>1?"s":""} par tir</div>`:""}${R.kind==="att"?dmgPrev:""}
-   ${P.cap&&ld<(P.raf||1)?`<div class="ptrw">${ld?"Pas assez de balles pour ce mode.":"Arme vide : recharge avant de tirer."}</div>`:R.kind!=="init"&&pActLeft(p)!==null&&pActLeft(p)<=0&&!R.res?`<div class="ptrw">${(p.combat||{}).init==null?"Lance d’abord l’Initiative.":"Plus d’action ce round."}</div>`:R.kind!=="init"&&pActLeft(p)!==null&&pActLeft(p)<=0?"":`<button class="roll" data-pa="rgo">LANCER ${split}</button>`}${res}</div>`;
+   ${R.kind==="init"||R.kind==="def"||R.kind==="sonic"?"":`<div class="prdifw"><span>Difficulté</span><div class="diffs prdif">${[1,2,3,4,5,6,7,8,9,10].map(d=>`<button class="chip" data-pa="rdiff" data-v="${d}" aria-pressed="${R.diff===d}">${d}</button>`).join("")}</div></div>`}
+   ${R.kind==="att"&&P.cap?`<div class="note">Chargeur ${ld}/${P.cap} · ${P.raf||1} balle${(P.raf||1)>1?"s":""} par tir</div>`:""}${R.kind==="att"?dmgPrev:""}${R.kind==="sonic"?`<div class="prdmg">${R.sonic===2?"Domination : succès = difficulté de la défense · ":""}Dégâts : 1 + DC Technologie${R.sonic===2?` (${(R.tech||{}).trig||0})`:""} + DC Domination → ${pSonicDeg(P.w)[1]}</div>`:""}
+   ${P.cap&&ld<(P.raf||1)?`<div class="ptrw">${ld?"Pas assez de balles pour ce mode.":"Arme vide : recharge avant de tirer."}</div>`:R.kind!=="init"&&R.sonic!==2&&pActLeft(p)!==null&&pActLeft(p)<=0&&!R.res?`<div class="ptrw">${(p.combat||{}).init==null?"Lance d’abord l’Initiative.":"Plus d’action ce round."}</div>`:(R.kind!=="init"&&R.sonic!==2&&pActLeft(p)!==null&&pActLeft(p)<=0)||(R.sonic===2&&R.res)?"":`<button class="roll" data-pa="rgo">LANCER ${split}</button>`}${res}</div>`;
 }
 /* exécute le jet (premier tir ou attaque de Régularité) */
 function pDoRoll(p){
   const R=S.pRoll;if(!R)return;const P=pPlan(p,R);
-  const counts=R.kind!=="init"&&R.at!=="spo"&&R.at!=="def:mentale"&&!R.regul&&p.combat&&p.combat.on;
+  const counts=R.kind!=="init"&&R.at!=="spo"&&R.at!=="def:mentale"&&R.sonic!==2&&!R.regul&&p.combat&&p.combat.on;
   if(counts&&pActLeft(p)<=0){toast(p.combat.init==null?"Lance d’abord l’Initiative":"Plus d’action ce round");return}
   if(P.cap&&pLoaded(P.w)<(P.raf||1))return;
   const egoSpent=R.kind==="init"?R.ego:0;
@@ -403,6 +413,10 @@ function pDoRoll(p){
   R.resInfo=R.kind==="att"?[P.cap?`${P.raf||1} balle${(P.raf||1)>1?"s":""} tirée${(P.raf||1)>1?"s":""}`:"",P.raf&&P.cib>1?`rafale de ${P.raf} sur ${P.cib} cibles : ${P.balls.map((b,i)=>`cible ${i+1} ${P.dice[i]}D, ${b} balle${b>1?"s":""} (+${b} dégât${b>1?"s":""})`).join(" · ")}`:P.raf?`rafale de ${P.raf} : +${P.raf}D et +${P.raf} dégâts`:"",R.regul?`Régularité −${2*R.regul}D`:""].filter(Boolean).join(" · "):"";
   if(!R.regul)R.ego=0;
   if(P.cap&&R.raf>pLoaded(P.w)){const m=Math.min(P.rx,pLoaded(P.w));R.raf=m<2?0:m}
+  if(R.sonic){const r=res[0],w=P.w,d=pSonicDeg(w);
+    if(R.sonic===1){R.tech={succ:r.succ,trig:r.trig};pushHist(`${w.nom||"Arme sonique"} · réglage Technologie ${r.n}D (diff. 1)`,`${r.succ} S · ${r.trig} DC${r.succ>=1?" · réglé":" · raté"}`)}
+    else{const t=(R.tech||{}).trig||0;pushHist(`${w.nom||"Arme sonique"} · Domination ${r.n}D`,r.succ>0?`${r.succ} S → défense diff. ${r.succ} · ${1+t+r.trig} pt${1+t+r.trig>1?"s":""} ${d[0]}`:"0 S · échec")}
+    return}
   res.forEach((r,i)=>{if(R.kind==="init")pushHist(`Initiative ${r.n}D`,`${r.succ} S · ${r.trig} DC · ${1+Math.floor(r.trig/2)} action(s)`);
     else pushHist(`${R.label}${res.length>1?" · cible "+(i+1):""} ${r.n}D (diff. ${R.diff})`,`${r.succ} S · ${r.trig} DC${r.succ>=R.diff?" · réussite":r.ones>r.succ?" · échec critique":" · échec"}`)});
 }
@@ -449,11 +463,11 @@ function pCombat(p){
     const va=pWV(p,w),cap=pCap(w),ld=pLoaded(w),am=pAmmoFor(p,w);
     const stock=am.reduce((s,m)=>({c:s.c+(+m.chargeurs||0),b:s.b+(+m.balles||0)}),{c:0,b:0});
     return `<div class="pwpn"><div class="pwh"><span class="pwn">${esc(w.nom||"Arme")}</span>${va?`<span class="pwva">${va.v}D</span>`:""}</div>
-     <div class="pil">${esc([w.deg&&"Dégâts "+w.deg,w.portee&&"Portée "+w.portee,va?va.t:(w.comp?w.comp+" (compétence non reconnue)":"Compétence d’attaque à renseigner")].filter(Boolean).join(" · "))}</div>
+     <div class="pil">${esc([w.deg&&"Dégâts "+w.deg,w.portee&&"Portée "+w.portee,va?va.t:pSonic(w)?"INT + Technologie, puis PSY + Domination":(w.comp?w.comp+" (compétence non reconnue)":"Compétence d’attaque à renseigner")].filter(Boolean).join(" · "))}</div>
      ${w.prop?`<div class="pil pml">${esc(w.prop)}</div>`:""}
      ${cap?`<div class="pammo">${trackBoxes(cap,ld,"ammo")}<span class="pamt">${ld}/${cap}</span></div>
        <div class="pil">${w.cal?`Réserve ${esc(w.cal)} : ${stock.b} balle${stock.b>1?"s":""}${stock.c?` (${stock.c} chargeur${stock.c>1?"s":""})`:""}`:"Indique le calibre de l’arme dans l’Inventaire pour recharger depuis la réserve."}</div>`:""}
-     <div class="btnrow"><button class="btn red pib" data-pa="attack" data-k="${i}"${pActDis(p)}>${pRanged(p,w)?IC_BALL:IC_KNIFE}Attaquer</button>${pMelee(p,w)?`<button class="btn pib" data-pa="wparry" data-k="${i}"${pActDis(p)}>${IC_PARRY}Parer</button>`:""}${cap?`<button class="btn" data-pa="reload" data-k="${i}"${ld>=cap?" disabled":""}>Recharger</button>`:""}</div>${pRollPanel(p,"w:"+i)}${pRollPanel(p,"wp:"+i)}</div>`}).join(""):`<p class="pnone">Aucune arme. Ajoute-les dans l’Inventaire.</p>`}</section>`;
+     <div class="btnrow"><button class="btn red pib" data-pa="attack" data-k="${i}"${pActDis(p)}>${pSonic(w)?IC_SONIC:pRanged(p,w)?IC_BALL:IC_KNIFE}Attaquer</button>${pMelee(p,w)?`<button class="btn pib" data-pa="wparry" data-k="${i}"${pActDis(p)}>${IC_PARRY}Parer</button>`:""}${cap?`<button class="btn" data-pa="reload" data-k="${i}"${ld>=cap?" disabled":""}>Recharger</button>`:""}</div>${pRollPanel(p,"w:"+i)}${pRollPanel(p,"wp:"+i)}</div>`}).join(""):`<p class="pnone">Aucune arme. Ajoute-les dans l’Inventaire.</p>`}</section>`;
   /* à portée de main */
   const cons=p.equip.map((x,i)=>[x,i]).filter(([x])=>x.combat);
   h+=`<section class="psec"><div class="pst">À portée de main</div>${cons.length?cons.map(([x,i])=>`<div class="pcons"><div class="pih"><span class="pin2">${esc(x.nom||"—")}</span><span class="pq${(+x.qte||0)<=0?" low":""}">${pStep("equip."+i+".qte",+x.qte||0)}</span><button class="btn sm red" data-pa="use" data-k="${i}"${(+x.qte||0)<=0?" disabled":""}>Utiliser</button></div>${x.effet?`<div class="pil">${esc(x.effet)}</div>`:""}</div>`).join(""):`<p class="pnone">Coche « À portée de main en combat » sur un objet de l’Inventaire pour le retrouver ici.</p>`}</section>`;
@@ -492,7 +506,9 @@ function pCombatAction(act,a,p){
     case "etat":{if(!Array.isArray(p.etats))p.etats=[];pSnap(p,"État");const i=p.etats.indexOf(k);if(i>=0)p.etats.splice(i,1);else p.etats.push(k);return true}
     case "cstart":pSnap(p,"Commencer le combat");p.combat={on:true,round:1,init:null,act:null,ego:0};pOpenRoll(p,"init",pInitOpts(p));window.scrollTo(0,0);return true;
     case "cnext":{const c=p.combat;if(!c||!c.on)return true;pSnap(p,"Round suivant");c.round++;c.init=null;c.act=null;c.ego=0;c.used=0;S.pOther=false;pOpenRoll(p,"init",pInitOpts(p));window.scrollTo(0,0);return true}
-    case "attack":{const w=p.armes[+k],va=pWV(p,w);pOpenRoll(p,"w:"+k,{kind:"att",w:+k,label:"Attaque · "+(w.nom||"arme"),calc:va?va.t:"Compétence non reconnue : règle avec le modificateur",base:va?va.v:0});return true}
+    case "attack":{const w=p.armes[+k];
+      if(pSonic(w)){const A=+p.a.INT||0,T=+p.k.Technologie||0;pOpenRoll(p,"w:"+k,{kind:"sonic",sonic:1,w:+k,label:"Attaque sonique · "+(w.nom||"arme")+" · réglage",calc:`INT ${A} + Technologie ${T}`,base:A+T,diff:1});return true}
+      const va=pWV(p,w);pOpenRoll(p,"w:"+k,{kind:"att",w:+k,label:"Attaque · "+(w.nom||"arme"),calc:va?va.t:"Compétence non reconnue : règle avec le modificateur",base:va?va.v:0});return true}
     case "defroll":{const D={parade:["PHY","Lutte","Parade"],esquive:["AGI","Mobilité","Esquive"],mentale:["PSY",pMental(p).c,"Défense mentale"]}[k];if(!D)return true;S.pOther=false;
       pOpenRoll(p,"def:"+k,{kind:"def",label:D[2],calc:`${P_ATTR.find(x=>x[0]===D[0])[1]} ${+p.a[D[0]]||0} + ${D[1]} ${+p.k[D[1]]||0}`,base:(+p.a[D[0]]||0)+(+p.k[D[1]]||0)});return true}
     case "wparry":{const w=p.armes[+k];pOpenRoll(p,"wp:"+k,{kind:"def",label:"Parade · "+(w.nom||"arme"),calc:`Physique ${+p.a.PHY||0} + Corps à corps ${+p.k["Corps à corps"]||0}`+pManTxt(pMan(w)),base:Math.max(0,(+p.a.PHY||0)+(+p.k["Corps à corps"]||0)+pMan(w))});return true}
@@ -505,6 +521,8 @@ function pCombatAction(act,a,p){
       if(k==="rego")R.ego=Math.max(0,Math.min(3,p.pistes.ego.max-p.pistes.ego.v,R.ego+d));
       if(k==="rcib")R.cib=Math.max(1,Math.min(R.raf||1,(R.cib||1)+d));
       return true}
+    case "rson":{const R=S.pRoll;if(!R||!R.tech)return true;const A=+p.a.PSY||0,T=+p.k.Domination||0;
+      Object.assign(R,{sonic:2,res:null,mod:0,ego:0,base:A+T,calc:`PSY ${A} + Domination ${T}`,label:"Attaque sonique · "+(p.armes[R.w].nom||"arme")+" · Domination"});return true}
     case "rgo":if(S.pRoll){S.pRoll.regul=0;S.pRoll.chain=[];pDoRoll(p);S._pShowRes=true}return true;
     case "rregul":if(S.pRoll){S._pShowRes=true;const R=S.pRoll;if(R.res)(R.chain=R.chain||[]).push({n:(R.regul||0)+1,res:R.res,diff:R.resDiff,rafDmg:R.resRafDmg||0});S.pRoll.regul=(S.pRoll.regul||0)+1;S.pRoll.raf=Math.min(S.pRoll.raf,S.pRoll.resRaf||0);pDoRoll(p)}return true;
     case "rraf":{const R=S.pRoll;if(!R)return true;R.raf=+a.dataset.v||0;R.cib=Math.min(R.cib||1,R.raf||1);R.res=null;R.regul=0;return true}
