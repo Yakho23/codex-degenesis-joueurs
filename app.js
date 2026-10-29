@@ -37,7 +37,7 @@ const SECTIONS=[
  {id:"regles",n:"III",t:"Règles",s:"Combat, blessures, Ego",pos:[232,100]},
  {id:"bazar",n:"IV",t:"Bazar",s:"Armes, armures, matériel",pos:[174,201]},
  {id:"des",n:"V",t:"Dés",s:"Réserve, déclencheurs, échecs",pos:[58,201]},
- {id:"campagne",n:"VI",t:"Campagne",s:"À venir",pos:[0,100]}];
+ {id:"campagne",n:"VI",t:"Campagne",s:"Cartes",pos:[0,100]}];
 
 /* ───────── clés des fiches (recherche globale) ───────── */
 const KEY=new Map(),kk=o=>KEY.get(o)||"",dk=o=>{const k=kk(o);return k?` data-k="${k}"`:""};
@@ -699,9 +699,42 @@ app.addEventListener("change",e=>{const t=e.target;
   else if(t.tagName==="SELECT"){pSet(p,k,t.value);p.maj=Date.now();pSave(true);render()}});
 
 /* ───────── VI. CAMPAGNE ───────── */
+/* Cartes : visionneuse zoom + déplacement (doigts, souris, molette), sans filtre ni interaction */
+const MAPS=[{id:"monde",t:"Monde",src:"assets/cartes/monde.jpg",w:3517,h:4970,cap:"Carte du monde · Primal Punk"}];
+const MAPV={id:"monde",x:0,y:0,k:0,fit:0};
 function campagne(){
-  return `<div class="stack"><p class="empty">Le contenu de cette section arrive bientôt.</p></div>`;
+  const m=MAPS.find(x=>x.id===MAPV.id)||MAPS[0];
+  return `<div class="stack">${MAPS.length>1?chips(MAPS.map(x=>[x.id,x.t]),m.id,"mapsel","Cartes"):""}
+   <div class="mapv" id="mapv"><img src="${m.src}" alt="${esc(m.cap)}" width="${m.w}" height="${m.h}" draggable="false"${MAPV.k?` style="transform:translate(${MAPV.x}px,${MAPV.y}px) scale(${MAPV.k})"`:' style="visibility:hidden"'}>
+    <div class="mapb"><button data-map="in" aria-label="Zoom avant">+</button><button data-map="out" aria-label="Zoom arrière">−</button><button data-map="fit" aria-label="Carte entière">⤢</button></div></div>
+   <p class="mapcap">${esc(m.cap)} · pince ou molette pour zoomer, glisse pour te déplacer, double-tap pour agrandir</p></div>`;
 }
+function mapBox(){const v=$("#mapv"),m=MAPS.find(x=>x.id===MAPV.id)||MAPS[0];return v?{v,img:v.querySelector("img"),W:v.clientWidth,H:v.clientHeight,m}:null}
+function mapApply(b){const{W,H,m}=b,w=m.w*MAPV.k,h=m.h*MAPV.k;
+  MAPV.x=w<=W?(W-w)/2:Math.min(0,Math.max(W-w,MAPV.x));MAPV.y=h<=H?(H-h)/2:Math.min(0,Math.max(H-h,MAPV.y));
+  b.img.style.visibility="";b.img.style.transform=`translate(${MAPV.x}px,${MAPV.y}px) scale(${MAPV.k})`}
+function mapFit(){const b=mapBox();if(!b)return;MAPV.fit=Math.min(b.W/b.m.w,b.H/b.m.h);MAPV.k=MAPV.fit;MAPV.x=MAPV.y=0;mapApply(b)}
+function mapZoom(f,cx,cy){const b=mapBox();if(!b||!MAPV.k)return;const k0=MAPV.k,k=Math.max(MAPV.fit,Math.min(1.6,k0*f));if(k===k0)return;
+  cx=cx==null?b.W/2:cx;cy=cy==null?b.H/2:cy;MAPV.x=cx-(cx-MAPV.x)*k/k0;MAPV.y=cy-(cy-MAPV.y)*k/k0;MAPV.k=k;mapApply(b)}
+(function(){const P=new Map();let d0=0,drag=null;
+  const rel=(e,v)=>{const r=v.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+  app.addEventListener("load",e=>{if(e.target.matches&&e.target.matches(".mapv img")){MAPV.k?mapApply(mapBox()):mapFit()}},true);
+  window.addEventListener("resize",()=>{if(S.view==="campagne"&&MAPV.k){const k=MAPV.k===MAPV.fit;const b=mapBox();if(!b)return;MAPV.fit=Math.min(b.W/b.m.w,b.H/b.m.h);if(k||MAPV.k<MAPV.fit)MAPV.k=MAPV.fit;mapApply(b)}});
+  app.addEventListener("click",e=>{const a=e.target.closest("[data-map]");if(!a)return;const t=a.dataset.map;t==="in"?mapZoom(1.5):t==="out"?mapZoom(1/1.5):mapFit()});
+  app.addEventListener("pointerdown",e=>{const v=e.target.closest&&e.target.closest(".mapv");if(!v||e.target.closest(".mapb"))return;
+    v.setPointerCapture&&v.setPointerCapture(e.pointerId);P.set(e.pointerId,[e.clientX,e.clientY]);
+    if(P.size===2){const[a,b]=[...P.values()];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);drag=null}else drag={x:e.clientX,y:e.clientY,ox:MAPV.x,oy:MAPV.y}});
+  app.addEventListener("pointermove",e=>{if(!P.has(e.pointerId))return;const v=$("#mapv");if(!v)return;P.set(e.pointerId,[e.clientX,e.clientY]);
+    if(P.size===2){const[a,b]=[...P.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]),r=v.getBoundingClientRect();if(d0)mapZoom(d/d0,(a[0]+b[0])/2-r.left,(a[1]+b[1])/2-r.top);d0=d}
+    else if(drag){const bx=mapBox();if(!bx)return;MAPV.x=drag.ox+e.clientX-drag.x;MAPV.y=drag.oy+e.clientY-drag.y;mapApply(bx)}});
+  let tp=null;
+  const up=e=>{const v=e.target.closest&&e.target.closest(".mapv");
+    if(e.type==="pointerup"&&P.size===1&&drag&&v&&!e.target.closest(".mapb")&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<8){const t=Date.now();
+      if(tp&&t-tp.t<320&&Math.hypot(e.clientX-tp.x,e.clientY-tp.y)<30){const[x,y]=rel(e,v);tp=null;MAPV.k>MAPV.fit*1.05?mapFit():mapZoom(2.5,x,y)}else tp={t,x:e.clientX,y:e.clientY}}
+    P.delete(e.pointerId);d0=0;drag=null;if(P.size===1){const[p]=[...P.values()];drag={x:p[0],y:p[1],ox:MAPV.x,oy:MAPV.y}}};
+  app.addEventListener("pointerup",up);app.addEventListener("pointercancel",up);
+  app.addEventListener("wheel",e=>{const v=e.target.closest&&e.target.closest(".mapv");if(!v)return;e.preventDefault();const[x,y]=rel(e,v);mapZoom(e.deltaY<0?1.2:1/1.2,x,y)},{passive:false});
+})();
 /* ───────── II. LORE ───────── */
 function loreTabs(){return chips(LORE.tabs.map(t=>[t.id,t.t]),S.loreTab,"loretab","Rubriques du lore")}
 const stripTags=h=>String(h).replace(/<[^>]+>/g," ");
@@ -865,6 +898,7 @@ app.addEventListener("click",e=>{
     case "hit":{const h=HITS[+v];if(h)jump(h);break}
     case "gall":S.gAll=v;render();break;
     case "qclear":S[v]="";if(v==="homeQ")S.gAll=null;S._focusQ=true;render();if(v!=="homeQ"){const q=$("#q");if(q)q.focus()}break;
+    case "mapsel":MAPV.id=v;MAPV.k=0;render();break;
     case "loretab":S.loreTab=v;S.loreQ="";render();break;
     case "zoom":{const z=document.createElement("div");z.className="zoom"+(a.dataset.wide?" wide":"");z.innerHTML=`<img src="${a.dataset.src}" alt=""><button class="x" aria-label="Fermer">×</button>`;z.addEventListener("click",ev=>{if(ev.target.closest(".x")||ev.target===z)z.remove()});document.body.appendChild(z);break;}
   }
