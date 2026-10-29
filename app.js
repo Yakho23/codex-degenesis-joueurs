@@ -315,7 +315,9 @@ function pPlan(p,R){
   const pool=Math.max(0,R.base-pTrauMalus(p)+R.mod+(R.kind==="init"?R.ego:0)+egoInit+raf-2*(R.regul||0));
   /* dés partagés entre les cibles ; le reste de la division va aux premières cibles (1 dé chacune) */
   const per=Math.floor(pool/cib),rem=pool%cib,dice=Array.from({length:cib},(_,i)=>per+(i<rem?1:0));
-  return {w,cap,rx,raf,cib,pool,per,dice,egoInit,rafDmg:raf?Math.floor(raf/cib):0};
+  /* balles réparties comme les dés : le reste va aux premières cibles (3 balles sur 2 cibles : 2 + 1) ; +1 dégât par balle reçue */
+  const bl=raf?Array.from({length:cib},(_,i)=>Math.floor(raf/cib)+(i<raf%cib?1:0)):[0];
+  return {w,cap,rx,raf,cib,pool,per,dice,egoInit,balls:bl,rafDmg:bl[0]};
 }
 /* dégâts de l’arme : nombre, ou formule avec F = PHY+Force (F/2, F/3 arrondis au supérieur), ex. « 2+F/3 » */
 /* dégâts de l’arme : nombre, ou formule avec F = PHY+Force (F/2, F/3 arrondis au supérieur), ex. « 2+F/3 » */
@@ -329,8 +331,9 @@ function pDmgBase(p,d){
 }
 function pDmgVal(w,rafDmg,trig,p){const b=pDmgBase(p,String(w&&w.deg||"").trim());return b?b.v+rafDmg+trig:null}
 /* résumé d’une attaque déjà lancée (enchaînement de Régularité) */
+const pRd=(rd,i)=>(Array.isArray(rd)?rd[i]:rd)||0;
 function pChainLine(c,w,p){
-  return `<div class="prchain"><b>Attaque ${c.n}</b>${c.res.map((r,i)=>{const ok=r.n>0&&r.succ>=c.diff,dv=ok?pDmgVal(w,c.rafDmg,r.trig,p):null;
+  return `<div class="prchain"><b>Attaque ${c.n}</b>${c.res.map((r,i)=>{const ok=r.n>0&&r.succ>=c.diff,dv=ok?pDmgVal(w,pRd(c.rafDmg,i),r.trig,p):null;
     return `<span>${c.res.length>1?`Cible ${i+1} : `:""}${ok?"réussite":r.ones>r.succ?"échec critique":"échec"} · ${r.succ} S · ${r.trig} DC${ok?` · dégâts <b>${dv!=null?dv:esc(String(w&&w.deg||"?"))+(r.trig?" + "+r.trig+" DC":"")}</b>`:""}</span>`}).join("")}</div>`;
 }
 function pDmg(w,rafDmg,trig,p){
@@ -359,7 +362,7 @@ function pRollPanel(p,at){
      <div class="note">${r.succ?`Score d’Initiative ${r.succ}`:"Aucun succès : une action à Initiative 0"} · ${1+Math.floor(r.trig/2)} action${r.trig>=2?"s":""} ce round (1 + 1 par tranche de 2 déclencheurs).</div></div>`}
   else if(R.res){
     const n=R.res.length;
-    res=(R.chain&&R.chain.length?`<div class="prchains">${R.chain.map(c=>pChainLine(c,P.w,p)).join("")}</div>`:"")+(R.resInfo?`<div class="prinfo">${esc(R.resInfo)}</div>`:"")+R.res.map((r,i)=>pOneRes(r,R.resDiff,R.kind,P.w,R.resRafDmg||0,n>1?"Cible "+(i+1):"",p)).join("");
+    res=(R.chain&&R.chain.length?`<div class="prchains">${R.chain.map(c=>pChainLine(c,P.w,p)).join("")}</div>`:"")+(R.resInfo?`<div class="prinfo">${esc(R.resInfo)}</div>`:"")+R.res.map((r,i)=>pOneRes(r,R.resDiff,R.kind,P.w,pRd(R.resRafDmg,i),n>1?"Cible "+(i+1):"",p)).join("");
     const rg=P.w?pRegul(P.w):0;
     if(R.kind==="att"&&rg&&R.res.some(r=>r.succ>=R.resDiff&&r.trig>=rg)){
       const can=!P.cap||pLoaded(P.w)>=(R.resRaf||1);
@@ -372,7 +375,7 @@ function pRollPanel(p,at){
     if(P.raf)mode+=`<div class="prrow"><span>Cibles <small>(1 à ${P.raf})</small></span>${pStep2("rcib",P.cib)}</div>`;}
   const split=P.cib>1?(P.pool%P.cib?P.dice.map(d=>d+"D").join(" + "):`${P.cib} × ${P.per}D`):`${P.pool}D`;
   const recap=[R.calc,tm?`Traumatismes −${tm}D`:"",P.egoInit?`Ego de l’Initiative +${P.egoInit}D (1re action)`:"",P.raf?`Rafale +${P.raf}D`:"",R.regul?`Régularité −${2*R.regul}D`:""].filter(Boolean).join(" · ");
-  const dmgPrev=P.w&&P.w.deg?`<div class="prdmg">Dégâts${P.cib>1?" par cible":""} : ${pDmg(P.w,P.rafDmg,0,p)}${/^\d+$/.test(String(P.w.deg).trim())?"":""} + déclencheurs</div>`:"";
+  const dmgPrev=P.w&&P.w.deg?(P.cib>1&&P.raf?P.balls.map((b,i)=>`<div class="prdmg">Dégâts cible ${i+1} (${b} balle${b>1?"s":""}) : ${pDmg(P.w,b,0,p)} + déclencheurs</div>`).join(""):`<div class="prdmg">Dégâts : ${pDmg(P.w,P.rafDmg,0,p)} + déclencheurs</div>`):"";
   return `<div class="proll"><div class="prh"><span>${esc(R.label)}${R.regul?` · attaque ${R.regul+1}`:""}</span><button class="prx" data-pa="rollx" aria-label="Fermer">×</button></div>
    <div class="prcalc">${esc(recap)}</div>
    ${mode}
@@ -395,9 +398,9 @@ function pDoRoll(p){
   if(egoSpent)p.pistes.ego.v=Math.min(p.pistes.ego.max,p.pistes.ego.v+R.ego);
   if(P.cap)P.w.cur=pLoaded(P.w)-(P.raf||1);
   const res=P.dice.map(n=>rollPool(n));
-  R.res=res;R.resDiff=R.diff;R.resRaf=P.raf;R.resRafDmg=P.rafDmg;
+  R.res=res;R.resDiff=R.diff;R.resRaf=P.raf;R.resRafDmg=P.balls;
   if(R.kind==="init"&&p.combat&&p.combat.on){const r=res[0];p.combat.init=r.succ;p.combat.act=1+Math.floor(r.trig/2);p.combat.ego=egoSpent;p.combat.egoUsed=false;p.combat.used=0}
-  R.resInfo=R.kind==="att"?[P.cap?`${P.raf||1} balle${(P.raf||1)>1?"s":""} tirée${(P.raf||1)>1?"s":""}`:"",P.raf&&P.cib>1?`rafale de ${P.raf} sur ${P.cib} cibles : ${P.dice.join("D / ")}D et +${P.rafDmg} dégât${P.rafDmg>1?"s":""} par cible`:P.raf?`rafale de ${P.raf} : +${P.raf}D et +${P.raf} dégâts`:"",R.regul?`Régularité −${2*R.regul}D`:""].filter(Boolean).join(" · "):"";
+  R.resInfo=R.kind==="att"?[P.cap?`${P.raf||1} balle${(P.raf||1)>1?"s":""} tirée${(P.raf||1)>1?"s":""}`:"",P.raf&&P.cib>1?`rafale de ${P.raf} sur ${P.cib} cibles : ${P.balls.map((b,i)=>`cible ${i+1} ${P.dice[i]}D, ${b} balle${b>1?"s":""} (+${b} dégât${b>1?"s":""})`).join(" · ")}`:P.raf?`rafale de ${P.raf} : +${P.raf}D et +${P.raf} dégâts`:"",R.regul?`Régularité −${2*R.regul}D`:""].filter(Boolean).join(" · "):"";
   if(!R.regul)R.ego=0;
   if(P.cap&&R.raf>pLoaded(P.w)){const m=Math.min(P.rx,pLoaded(P.w));R.raf=m<2?0:m}
   res.forEach((r,i)=>{if(R.kind==="init")pushHist(`Initiative ${r.n}D`,`${r.succ} S · ${r.trig} DC · ${1+Math.floor(r.trig/2)} action(s)`);
