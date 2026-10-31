@@ -451,3 +451,15 @@ details.card.ppotc{border-left:3px solid var(--red)}
 @media (max-width:430px){.pcmb .ptri{display:none}}
 @media (max-width:340px){.pcmb .ptrh{gap:6px!important}.pcmb .ptrh .ptrl{font-size:11.5px!important;letter-spacing:.02em!important}.pcmb .ptrh .ptrv{font-size:20px!important}.pcmb .ptrh .ptrv small{font-size:12px}.pcmb .tbx:not(.ammo){grid-template-columns:repeat(auto-fill,minmax(6px,8px))}}
 @media (max-width:340px){.pemb .pev{font-size:14.5px;overflow-wrap:normal;hyphens:auto}.pembs{gap:4px}.pidg span{letter-spacing:.08em;font-size:11px}.pidg b{font-size:15.5px}}
+
+/* Galerie de portraits (création / modification de la fiche) */
+.pavbtn{display:block;position:relative;flex:none;padding:0;border:0;background:none;color:inherit;cursor:pointer;line-height:0;-webkit-tap-highlight-color:transparent}
+.pavcam{position:absolute;right:-2px;bottom:-2px;width:30px;height:30px;display:grid;place-items:center;background:var(--red);color:#fff;border:2px solid var(--ink)}
+.pavcam svg{width:18px;height:18px}
+.pgal .tabs{margin-bottom:10px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-bottom:12px}
+.pgb{position:relative;aspect-ratio:1;padding:0;border:1px solid var(--line2);background:#0e0e0e;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.pgb img{width:100%;height:100%;object-fit:cover;display:block}
+.pgb.on{outline:2px solid var(--red);outline-offset:-2px}
+.pgb:active{opacity:.75}
+.pavbtn .pav{display:block}

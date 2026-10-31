@@ -208,6 +208,13 @@ const pParcours=p=>`<div class="pparc">${P_PARC.map(([k,l,svg])=>`<label class="
 const P_FRAME='<svg class="pfr" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" vector-effect="non-scaling-stroke"><path stroke-width="1" opacity=".55" d="M9 .8h82l8.2 8.2v82L91 99.2H9L.8 91V9z"/><path stroke-width="1" opacity=".35" d="M13 5.2h74l7.8 7.8v74L87 94.8H13L5.2 87V13z"/><path stroke-width="2.4" stroke-linecap="square" d="M.8 26V9L9 .8h17M74 .8h17l8.2 8.2v17M99.2 74v17L91 99.2H74M26 99.2H9L.8 91V74"/></g></svg>';
 function pAvatar(p,cls){const ic=cultIcon(p.culte)||cultIcon(p.culture),ok=/^assets\/[\w\/.-]+\.(jpe?g|png|webp)$/i.test(p.portrait||"");
   return `<span class="pav pport ${cls||""}">${ok?`<img class="pimg" src="${esc(p.portrait)}" alt="">`:`<span class="pimg pph">${ic||`<b>${esc(DG((p.nom||"?").charAt(0)))}</b>`}</span>`}${P_FRAME}</span>`}
+/* ───── Galerie de portraits : un dossier par culte (assets/portraits/<culte>/NN.jpg) ───── */
+const PORTRAITS=[["Spitaliers","spitaliers",10],["Chroniqueurs","chroniqueurs",10],["Hellvétiques","hellvetiques",10],["Juges","juges",10],["Clanistes","clanistes",16],["Ferrailleurs","ferrailleurs",11],["Néolibyens","neolibyens",12],["Fléaux","fleaux",7],["Anubiens","anubiens",8],["Jehammétans","jehammetans",10],["Apocalyptiques","apocalyptiques",12],["Anabaptistes","anabaptistes",9],["Blafards","blafards",10]];
+const portCur=p=>S.pPortC&&PORTRAITS.some(x=>x[0]===S.pPortC)?S.pPortC:(PORTRAITS.some(x=>x[0]===p.culte)?p.culte:PORTRAITS[0][0]);
+function pGallery(p){const cur=portCur(p),g=PORTRAITS.find(x=>x[0]===cur);
+  return `<section class="psec pgal"><div class="pst">Portrait</div>${chips(PORTRAITS.map(x=>[x[0],x[0]]),cur,"pportc","Culte des portraits")}
+   <div class="pgrid">${Array.from({length:g[2]},(_,i)=>{const src=`assets/portraits/${g[1]}/${String(i+1).padStart(2,"0")}.jpg`;return `<button class="pgb${p.portrait===src?" on":""}" data-pa="portset" data-v="${src}" aria-label="Portrait ${i+1}, ${esc(cur)}"><img src="${src}" alt="" loading="lazy"></button>`}).join("")}</div>
+   <div class="btnrow"><button class="btn sm" data-pa="portset" data-v="">Sans portrait (icône du culte)</button><button class="btn sm" data-pa="portclose">Fermer</button></div></section>`}
 /* ───── Modifications (mods) des armes et des armures : liste à choisir, emplacements (Empl.) comptés ───── */
 /* familles : c = corps à corps, a = projectiles archaïques, e = énergétiques, f = armes à feu modernes, r = armures ; "w" = toutes les armes
    fx : effets calculés (deg, man = dés de Maniement, enc, arm = armure, cap = chargeur/charges, mul = multiplicateur de charges) */
@@ -382,11 +389,11 @@ function pList(){
 }
 
 function pFiche(p){
-  const head=`<div class="phead">${pAvatar(p,"big")}<div class="phi"><div class="phn">${esc(p.nom||"Sans nom")}</div><div class="phm">${esc([p.rang&&("Rang "+p.rang.replace(/^rang\s*/i,"")),p.culture,p.concept,p.culte].filter(Boolean).join(" · "))}</div></div></div>
+  const head=`<div class="phead">${S.pEdit?`<button class="pavbtn" data-pa="port" aria-label="Choisir le portrait">${pAvatar(p,"big")}<span class="pavcam" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.5h6.8L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>`:pAvatar(p,"big")}<div class="phi"><div class="phn">${esc(p.nom||"Sans nom")}</div><div class="phm">${esc([p.rang&&("Rang "+p.rang.replace(/^rang\s*/i,"")),p.culture,p.concept,p.culte].filter(Boolean).join(" · "))}</div></div></div>
    <div class="pbar"><button class="btn sm" data-pa="list">‹ Personnages</button>${S.pTab==="fiche"||S.pTab==="inventaire"?`<button class="btn sm${S.pEdit?" red":""}" data-pa="edit">${S.pEdit?"Sauvegarder":"Modifier"}</button>`:""}</div>`;
   const body={combat:pCombat,fiche:pSheet,inventaire:pInv,notes:pNotes}[S.pTab]||pSheet;
   const foot=S.pEdit&&(S.pTab==="fiche"||S.pTab==="inventaire")?`<button class="roll pdone" data-pa="edit" data-v="bas">SAUVEGARDER</button><p class="note">Les modifications sont enregistrées au fur et à mesure ; « Sauvegarder » repasse la fiche en lecture.</p>`:"";
-  return `<div class="stack perso">${head}${body(p)}${foot}${DATALISTS}</div>`;
+  return `<div class="stack perso">${head}${S.pEdit&&S.pPort&&(S.pTab==="fiche")?pGallery(p):""}${body(p)}${foot}${DATALISTS}</div>`;
 }
 /* ───── Écran Combat ───── */
 /* Ego : la piste stocke les points DÉPENSÉS (0 = Ego au maximum) ; affichage = points restants.
@@ -889,10 +896,13 @@ function pAction(a){
   if(act!=="conf")S.pConf=null;
   if(p&&pCombatAction(act,a,p)){p.maj=Date.now();pSave(true);render();return}
   switch(act){
-    case "new":{const n=pBlank();PERSOS.push(n);pSave(true);S.pid=n.id;S.pTab="fiche";S.pEdit=true;window.scrollTo(0,0);break}
-    case "open":S.pid=k;S.pTab="combat";S.pRoll=null;S.pEdit=false;S.pBz=null;window.scrollTo(0,0);break;
-    case "list":S.pid=null;S.pEdit=false;S.pBz=null;window.scrollTo(0,0);break;
-    case "edit":S.pEdit=!S.pEdit;S.pBz=null;if(a.dataset.v==="bas"){pSave(true);window.scrollTo(0,0);toast("Fiche enregistrée")}break;
+    case "new":{const n=pBlank();PERSOS.push(n);pSave(true);S.pid=n.id;S.pTab="fiche";S.pEdit=true;S.pPort=true;S.pPortC="";window.scrollTo(0,0);break}
+    case "open":S.pid=k;S.pTab="combat";S.pRoll=null;S.pEdit=false;S.pPort=false;S.pBz=null;window.scrollTo(0,0);break;
+    case "list":S.pid=null;S.pEdit=false;S.pPort=false;S.pBz=null;window.scrollTo(0,0);break;
+    case "port":S.pPort=!S.pPort;S.pPortC="";break;
+    case "portclose":S.pPort=false;break;
+    case "portset":{const v=a.dataset.v||"";if(v&&!/^assets\/portraits\/[a-z]+\/\d+\.jpg$/.test(v))break;p.portrait=v;p.maj=Date.now();pSave(true);S.pPort=false;window.scrollTo(0,0);break}
+    case "edit":S.pPort=false;S.pEdit=!S.pEdit;S.pBz=null;if(a.dataset.v==="bas"){pSave(true);window.scrollTo(0,0);toast("Fiche enregistrée")}break;
     case "showarch":S.pArch=!S.pArch;break;
     case "unarch":{const x=PERSOS.find(o=>o.id===k);if(x){x.arch=false;pSave(true)}break}
     case "box":{const v=+a.dataset.v,cur=+pGet(p,k)||0;pSet(p,k,cur===v?v-1:v);break}
@@ -1135,7 +1145,7 @@ app.addEventListener("click",e=>{
   const a=e.target.closest("[data-act]");if(!a)return;
   const act=a.dataset.act,v=a.dataset.v;
   switch(act){
-    case "ptab":S.pTab=v;S.pEdit=false;S.pBz=null;S.pConf=null;S.pRoll=null;render();window.scrollTo(0,0);break;
+    case "ptab":S.pTab=v;S.pEdit=false;S.pPort=false;S.pBz=null;S.pConf=null;S.pRoll=null;render();window.scrollTo(0,0);break;
     case "layout":S.layout=S.layout==="ruche"?"grille":"ruche";store.set("layout",S.layout);render();break;
     case "regcat":S.regCat=v;render();break;
     case "potcult":S.potCult=v;render();window.scrollTo(0,0);break;
@@ -1154,6 +1164,7 @@ app.addEventListener("click",e=>{
     case "hit":{const h=HITS[+v];if(h)jump(h);break}
     case "gall":S.gAll=v;render();break;
     case "qclear":S[v]="";if(v==="homeQ")S.gAll=null;S._focusQ=true;render();if(v!=="homeQ"){const q=$("#q");if(q)q.focus()}break;
+    case "pportc":S.pPortC=v;render();break;
     case "mapsel":MAPV.id=v;MAPV.k=0;render();break;
     case "loretab":S.loreTab=v;S.loreQ="";render();break;
     case "zoom":{const z=document.createElement("div");z.className="zoom"+(a.dataset.wide?" wide":"");z.innerHTML=`<img src="${a.dataset.src}" alt=""><button class="x" aria-label="Fermer">×</button>`;z.addEventListener("click",ev=>{if(ev.target.closest(".x")||ev.target===z)z.remove()});document.body.appendChild(z);break;}
@@ -1180,7 +1191,7 @@ function navSync(){const k=navKey();if(k===navStack[navI])return;
   navStack=navStack.slice(0,navI+1);navStack.push(k);navI++;try{history.pushState(Object.assign(JSON.parse(k),{i:navI}),"",navUrl(S.view))}catch(e){}}
 window.addEventListener("popstate",e=>{const n=e.state;if(!n||typeof n.v!=="string"||typeof n.i!=="number")return;
   navI=n.i;if(JSON.stringify({v:n.v,pid:n.pid||null})===navKey()){navStack[navI]=navKey();return}
-  S.view=n.v;S.pid=n.pid||null;S.pEdit=false;S.pRoll=null;S.pConf=null;S.pBz=null;S.pOther=false;S.focus=null;
+  S.view=n.v;S.pid=n.pid||null;S.pEdit=false;S.pPort=false;S.pRoll=null;S.pConf=null;S.pBz=null;S.pOther=false;S.focus=null;
   navStack[navI]=navKey();render();window.scrollTo(0,0)});
 /* démarrage */
 const h=(location.hash||"").slice(1);
