@@ -1297,5 +1297,195 @@ window.PRETIRES = [
   "artef": [],
   "notes": "Cheval d’allure : Vit 1, Acc 1, Frein 1, Blessures 12, Trauma 6.",
   "portrait": "assets/pretires/pavel.jpg"
+ },
+ {
+  "nom": "Vex",
+  "age": "",
+  "rang": "3 : Famulancier",
+  "xp": "",
+  "sexe": "Masculin",
+  "taille": "",
+  "poids": "",
+  "lc": "",
+  "culture": "Pollen",
+  "concept": "Le Chercheur",
+  "culte": "Spitaliers",
+  "her": [
+   "Intermédiaire",
+   "Débiteur",
+   ""
+  ],
+  "a": {
+   "PHY": 3,
+   "AGI": 3,
+   "CHA": 1,
+   "INT": 4,
+   "PSY": 3,
+   "INS": 2
+  },
+  "k": {
+   "Athlétisme": 1,
+   "Corps à corps": 3,
+   "Force": 1,
+   "Résistance": 3,
+   "Vigueur": 2,
+   "Armes à projectiles": 2,
+   "Mobilité": 2,
+   "Commandement": 1,
+   "Expression": 2,
+   "Concentration": 2,
+   "Médecine": 3,
+   "Science": 3,
+   "Technologie": 1,
+   "Réactivité": 2,
+   "Ruse": 1,
+   "Volonté": 3,
+   "Perception": 2,
+   "Survie": 2
+  },
+  "o": {},
+  "pots": [
+   {
+    "n": "Soignant",
+    "lvl": 1
+   }
+  ],
+  "pistes": {
+   "ego": {
+    "max": 12,
+    "v": 0
+   },
+   "spo": {
+    "max": 12,
+    "v": 0,
+    "perm": 0
+   },
+   "bles": {
+    "max": 12,
+    "v": 0
+   },
+   "trau": {
+    "max": 6,
+    "v": 0
+   }
+  },
+  "armes": [
+   {
+    "nom": "Dilacérateur",
+    "comp": "PHY+CORPS À CORPS",
+    "man": "-1D",
+    "portee": "2",
+    "deg": "4+F/3",
+    "charg": "",
+    "cal": "",
+    "prop": "Lacération (2DC, +1D dégâts)",
+    "enc": "3",
+    "tech": "IV",
+    "empl": "2",
+    "cat": "Corps à corps"
+   },
+   {
+    "nom": "Fusil fongicide",
+    "comp": "AGI+ARMES À PROJECTILES",
+    "man": "–",
+    "portee": "2 /8",
+    "deg": "Spécial",
+    "charg": "Spécial",
+    "cal": "Cartouches",
+    "prop": "",
+    "enc": "2",
+    "tech": "IV",
+    "empl": "2",
+    "cat": "Fusils"
+   },
+   {
+    "nom": "Arc",
+    "comp": "AGI+ARMES À PROJECTILES",
+    "man": "-1D",
+    "portee": "10 /40",
+    "deg": "6+F/3",
+    "charg": "1",
+    "cal": "Flèches",
+    "prop": "",
+    "enc": "1",
+    "tech": "I",
+    "empl": "2",
+    "cat": "Arcs & arbalètes",
+    "cur": 1
+   }
+  ],
+  "armures": [
+   {
+    "nom": "Combinaison Spitalière",
+    "va": "2",
+    "prop": "Hermétique (+4S), Respecté (Patients, +1D)",
+    "enc": "2",
+    "tech": "III",
+    "empl": "2"
+   }
+  ],
+  "equip": [
+   {
+    "nom": "Distillat, 1 L",
+    "qte": 1,
+    "enc": "",
+    "effet": "Désinfection, interne et externe",
+    "combat": false
+   },
+   {
+    "nom": "Bandages",
+    "qte": 1,
+    "enc": "",
+    "effet": "Juste après avoir subi la blessure : récupération de 1 Blessure Superficielle",
+    "combat": false
+   },
+   {
+    "nom": "Trousse de terrain",
+    "qte": 1,
+    "enc": "1",
+    "effet": "INT+Médecine : +2D, 5 doses",
+    "combat": false
+   },
+   {
+    "nom": "Sac à dos",
+    "qte": 1,
+    "enc": "1",
+    "effet": "Encombrement -2 pour les objets dans le sac à dos ; peut être posé au sol",
+    "combat": false
+   },
+   {
+    "nom": "Gourde",
+    "qte": 1,
+    "enc": "",
+    "effet": "Eau pour 2 jours",
+    "combat": false
+   }
+  ],
+  "mun": [
+   {
+    "nom": "Flèche",
+    "chargeurs": 0,
+    "balles": 0,
+    "deg": "–"
+   },
+   {
+    "nom": "Cartouche de poussière de feu",
+    "chargeurs": 0,
+    "balles": 1,
+    "deg": "–",
+    "agent": "Poussière de feu",
+    "effet": "Crée dégâts de feu comme le calcinateur (8)"
+   },
+   {
+    "nom": "Cartouche de SP 4016 TH",
+    "chargeurs": 0,
+    "balles": 1,
+    "deg": "–",
+    "agent": "SP 4016 TH",
+    "effet": "Empoisonné (4, -2D, durée : 1 jour)"
+   }
+  ],
+  "artef": [],
+  "portrait": "assets/pretires/vex.jpg"
  }
 ];
