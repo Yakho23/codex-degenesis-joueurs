@@ -958,10 +958,10 @@ window.PRETIRES = [
     "combat": false
    },
    {
-    "nom": "Trousse à outils",
+    "nom": "Trousse à outils (niv. 1)",
     "qte": 1,
     "enc": "2",
-    "effet": "Améliorable (1-3). AGI+Artisanat et AGI+Dextérité : +1D x niveau (niveau 1)",
+    "effet": "AGI+Artisanat et AGI+Dextérité : +1D",
     "combat": false
    }
   ],
@@ -969,5 +969,144 @@ window.PRETIRES = [
   "artef": [],
   "notes": "Mécano : lorsqu’ils démantèlent des artefacts, ils obtiennent 50 % de matériaux bruts en plus.",
   "portrait": "assets/pretires/luz.jpg"
+ },
+ {
+  "nom": "Octet",
+  "age": "28",
+  "rang": "3 : Médiateur",
+  "xp": "",
+  "sexe": "Masculin",
+  "taille": "1 m 78",
+  "poids": "78 kg",
+  "lc": "",
+  "culture": "Borca",
+  "concept": "Le Chercheur",
+  "culte": "Chroniqueurs",
+  "her": [
+   "Impitoyable",
+   "Routinier",
+   "Doué"
+  ],
+  "a": {
+   "PHY": 2,
+   "AGI": 1,
+   "CHA": 3,
+   "INT": 4,
+   "PSY": 3,
+   "INS": 3
+  },
+  "k": {
+   "Résistance": 1,
+   "Vigueur": 1,
+   "Furtivité": 1,
+   "Mobilité": 1,
+   "Commandement": 3,
+   "Négociation": 2,
+   "Concentration": 2,
+   "Conn. des artefacts": 4,
+   "Légendes": 1,
+   "Science": 3,
+   "Technologie": 4,
+   "Domination": 2,
+   "Réactivité": 1,
+   "Ruse": 2,
+   "Tromperie": 3,
+   "Volonté": 3,
+   "Perception": 2
+  },
+  "o": {},
+  "pots": [
+   {
+    "n": "Mémoire fractale",
+    "lvl": 1
+   }
+  ],
+  "pistes": {
+   "ego": {
+    "max": 18,
+    "v": 0
+   },
+   "spo": {
+    "max": 12,
+    "v": 0,
+    "perm": 0
+   },
+   "bles": {
+    "max": 6,
+    "v": 0
+   },
+   "trau": {
+    "max": 5,
+    "v": 0
+   }
+  },
+  "armes": [
+   {
+    "nom": "Vocodeur",
+    "comp": "COMBINAISON : INT+TECHNOLOGIE ET PSY+DOMINATION",
+    "man": "",
+    "portee": "10",
+    "deg": "1+DC Égo",
+    "charg": "",
+    "cal": "E-Cube",
+    "prop": "Coup de tonnerre, Dégâts de zone (45°)",
+    "enc": "1",
+    "tech": "IV",
+    "empl": "",
+    "cat": "Armes soniques"
+   }
+  ],
+  "armures": [
+   {
+    "nom": "Combinaison de Chroniqueur",
+    "va": "2",
+    "prop": "Première impression (+1D)",
+    "enc": "1",
+    "tech": "IV",
+    "empl": "2"
+   },
+   {
+    "nom": "Cape de Chroniqueur",
+    "va": "1",
+    "prop": "",
+    "enc": "",
+    "tech": "",
+    "empl": ""
+   }
+  ],
+  "equip": [
+   {
+    "nom": "Imprimante à lettres de change",
+    "qte": 1,
+    "enc": "",
+    "effet": "Par mois : 50 LC × Ressources",
+    "combat": false
+   },
+   {
+    "nom": "Masque de Chroniqueur",
+    "qte": 1,
+    "enc": "",
+    "effet": "",
+    "combat": false
+   },
+   {
+    "nom": "Source (niv. 1)",
+    "qte": 1,
+    "enc": "2",
+    "effet": "Niveau égal au total des niveaux de tous les modules à alimenter",
+    "combat": false
+   },
+   {
+    "nom": "Lumière verte",
+    "qte": 1,
+    "enc": "1",
+    "effet": "Cône de 45° : la cible subit +2 difficulté en malus général, Durée : 2 rounds, Refroidissement 3 rounds",
+    "combat": false
+   }
+  ],
+  "mun": [],
+  "artef": [],
+  "notes": "Modules de l’armure : Source niv. 1 (enc. 2), Lumière verte.",
+  "portrait": "assets/pretires/octet.jpg"
  }
 ];
