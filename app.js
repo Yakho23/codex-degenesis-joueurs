@@ -956,7 +956,7 @@ app.addEventListener("change",e=>{const t=e.target;
 
 /* ───────── VI. CAMPAGNE ───────── */
 /* Cartes : visionneuse zoom + déplacement (doigts, souris, molette), sans filtre ni interaction */
-const MAPS=[{id:"monde",t:"Carte du monde",src:"assets/cartes/monde.jpg",w:3517,h:4970,cap:"Carte du monde · Primal Punk"}];
+const MAPS=[{id:"monde",t:"Carte du monde",src:"assets/cartes/monde.jpg",w:3517,h:4970,cap:"Carte du monde · Primal Punk"},{id:"franka",t:"Côte sud de la Franka",src:"assets/cartes/cote-sud-franka.jpg",w:3355,h:2386,cap:"Côte sud de la Franka · Jeu de Massacre"}];
 const MAPV={id:"monde",x:0,y:0,k:0,fit:0};
 function campagne(){
   const m=MAPS.find(x=>x.id===MAPV.id)||MAPS[0];
