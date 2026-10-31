@@ -641,7 +641,7 @@ function pCombat(p){
   const c=p.combat||{};
   if(c.on&&c.init==null&&(!S.pRoll||S.pRoll.at!=="init"||S.pRoll.pid!==p.id))pOpenRoll(p,"init",pInitOpts(p));
   let h=(c.on?(S.pRoll&&S.pRoll.at==="init"&&S.pRoll.pid===p.id?`<section class="psec"><div class="pst">Round ${c.round} : initiative</div>${pRollPanel(p,"init")}</section>`:""):`<button class="roll pstart" data-pa="cstart">COMMENCER LE COMBAT</button>`)
-   +pArmorBlock(p)+pMentalBlock(p)+`<section class="psec"><div class="pst">Condition</div>${P_PISTES.map(([k,l])=>pTrack(p,k,l)).join("")}
+   +pArmorBlock(p)+pMentalBlock(p)+`<section class="psec"><div class="pst">Condition</div>${P_PISTES.map(([k,l])=>pTrack(p,k,k==="bles"?"Blessures":l)).join("")}
    </section>`;
   /* défense et autres actions */
   const al=pActLeft(p),dis=pActDis(p);
