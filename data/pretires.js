@@ -665,6 +665,20 @@ window.PRETIRES = [
     "tech": "IV",
     "empl": "2",
     "cat": "Corps à corps"
+   },
+   {
+    "nom": "Fusil fongicide",
+    "comp": "AGI+ARMES À PROJECTILES",
+    "man": "–",
+    "portee": "2 /8",
+    "deg": "Spécial",
+    "charg": "Spécial",
+    "cal": "Cartouches",
+    "prop": "",
+    "enc": "2",
+    "tech": "IV",
+    "empl": "2",
+    "cat": "Fusils"
    }
   ],
   "armures": [
