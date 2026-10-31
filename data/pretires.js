@@ -341,5 +341,117 @@ window.PRETIRES = [
   ],
   "artef": [],
   "portrait": "assets/pretires/bojantarnovic.jpg"
+ },
+ {
+  "nom": "Fraktal",
+  "age": "31",
+  "rang": "2 : Agent",
+  "xp": "",
+  "sexe": "Masculin",
+  "taille": "1 m 78",
+  "poids": "70 kg",
+  "lc": "384",
+  "culture": "Borca",
+  "concept": "Le Chercheur",
+  "culte": "Chroniqueurs",
+  "her": [
+   "",
+   "",
+   ""
+  ],
+  "a": {
+   "PHY": 3,
+   "AGI": 3,
+   "CHA": 1,
+   "INT": 4,
+   "PSY": 3,
+   "INS": 2
+  },
+  "k": {
+   "Force": 2,
+   "Résistance": 1,
+   "Armes à projectiles": 1,
+   "Artisanat": 2,
+   "Furtivité": 1,
+   "Mobilité": 1,
+   "Négociation": 3,
+   "Concentration": 2,
+   "Conn. des artefacts": 4,
+   "Science": 2,
+   "Technologie": 4,
+   "Domination": 2,
+   "Réactivité": 1,
+   "Tromperie": 1,
+   "Volonté": 2,
+   "Perception": 2
+  },
+  "o": {
+   "Réseau": 2,
+   "Ressources": 1,
+   "Secrets": 1
+  },
+  "pots": [
+   {
+    "n": "Téléchargement",
+    "lvl": 1
+   }
+  ],
+  "pistes": {
+   "ego": {
+    "max": 12,
+    "v": 0
+   },
+   "spo": {
+    "max": 10,
+    "v": 0,
+    "perm": 0
+   },
+   "bles": {
+    "max": 8,
+    "v": 0
+   },
+   "trau": {
+    "max": 6,
+    "v": 0
+   }
+  },
+  "armes": [
+   {
+    "nom": "Vocodeur",
+    "comp": "COMBINAISON : INT+TECHNOLOGIE ET PSY+DOMINATION",
+    "man": "–",
+    "portee": "10",
+    "deg": "1+DC Égo",
+    "charg": "",
+    "cal": "E-Cube",
+    "prop": "Coup de tonnerre, Dégâts de zone (45°)",
+    "enc": "1",
+    "tech": "IV",
+    "empl": "",
+    "cat": "Armes soniques"
+   }
+  ],
+  "armures": [
+   {
+    "nom": "Cape de fourrure",
+    "va": "1",
+    "prop": "",
+    "enc": "1",
+    "tech": "I",
+    "empl": ""
+   }
+  ],
+  "equip": [
+   {
+    "nom": "Masque de Chroniqueur",
+    "qte": 1,
+    "enc": "",
+    "effet": "",
+    "combat": false
+   }
+  ],
+  "mun": [],
+  "artef": [],
+  "portrait": "assets/pretires/fraktal.jpg"
  }
 ];
