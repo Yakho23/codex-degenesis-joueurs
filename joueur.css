@@ -191,8 +191,10 @@ details.card.ppotc>summary .t{font-size:16.5px}
 
 /* Bloc armure (écran Combat) */
 .parh{display:flex;align-items:center;gap:14px}
-.paric{flex:none;width:64px;height:64px;display:grid;place-items:center;color:var(--fg);background:radial-gradient(circle at 50% 40%,rgba(236,30,38,.35),rgba(236,30,38,0) 70%);border:1px solid var(--line2);border-radius:50%}
-.paric svg{width:40px;height:40px}
+.paric{flex:none;width:66px;height:74px;display:grid;place-items:center;color:var(--fg);position:relative;background:#6b6b6b;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.paric::before{content:"";position:absolute;inset:1.5px;background:#0c0c0c;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.paric svg{position:relative;width:50px;height:50px}
+.paric svg .ac{stroke:var(--red)}
 .paric.off{opacity:.4}
 .parv{font-family:var(--f-ui);font-weight:700;font-size:40px;line-height:1;color:#fff}
 .parv small{font-size:16px;font-weight:500;color:var(--dim);letter-spacing:.06em;margin-left:4px}
