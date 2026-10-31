@@ -180,7 +180,8 @@ details.card.ppotc>summary .t{font-size:16.5px}
 .pitem.ed{margin-bottom:6px}
 
 /* Mode de tir, cibles, dégâts, Régularité */
-.prmode{display:flex;flex-wrap:wrap;gap:6px}
+.prmode{display:flex;flex-wrap:nowrap;gap:6px}
+.prmode .chip{flex:1 1 auto;min-width:0;padding:7px 3px;white-space:nowrap;justify-content:center;text-align:center;font-size:14.5px;letter-spacing:.02em}
 .prmode .chip[disabled]{opacity:.35}
 .prinfo{font-family:var(--f-ui);font-size:14.5px;color:#d9bd7c;letter-spacing:.03em;border-top:1px solid var(--line);padding-top:8px}
 .prt{font-family:var(--f-ui);font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}

@@ -386,7 +386,7 @@ function pRollPanel(p,at){
   /* mode de tir */
   let mode="";
   if(P.rx){const opts=[0];for(let i=2;i<=P.rx;i++)opts.push(i);
-    mode=`<div class="prmode">${opts.map(v=>`<button class="chip" data-pa="rraf" data-v="${v}" aria-pressed="${P.raf===v}"${v>ld?" disabled":""}>${v?"Rafale "+v:"Coup par coup"}</button>`).join("")}</div>`;
+    mode=`<div class="prmode">${opts.map(v=>`<button class="chip" data-pa="rraf" data-v="${v}" aria-pressed="${P.raf===v}"${v>ld?" disabled":""}>${v?(opts.length>3?"Raf. ":"Rafale ")+v:(opts.length>3?"Coup/coup":"Coup par coup")}</button>`).join("")}</div>`;
     if(P.raf)mode+=`<div class="prrow"><span>Cibles <small>(1 à ${P.raf})</small></span>${pStep2("rcib",P.cib)}</div>`;}
   const split=P.cib>1?(P.pool%P.cib?P.dice.map(d=>d+"D").join(" + "):`${P.cib} × ${P.per}D`):`${P.pool}D`;
   const recap=[R.calc,tm?`Traumatismes −${tm}D`:"",P.egoInit?`Ego de l’Initiative +${P.egoInit}D (1re action)`:"",P.raf?`Rafale +${P.raf}D`:"",pRngMal(p,R,P.w)?`Portée ${R.rng===1?"longue":"extrême"} −${4*R.rng}D`:"",R.regul?`Régularité −${2*R.regul}D`:""].filter(Boolean).join(" · ");
@@ -394,7 +394,7 @@ function pRollPanel(p,at){
   return `<div class="proll"><div class="prh"><span>${esc(R.label)}${R.regul?` · attaque ${R.regul+1}`:""}</span><button class="prx" data-pa="rollx" aria-label="Fermer">×</button></div>
    <div class="prcalc">${esc(recap)}</div>
    ${mode}
-   ${R.kind==="att"&&pRngOk(p,P.w)?`<div class="prmode prrng" role="group" aria-label="Distance de tir">${[["Portée normale",0],["Longue −4D",1],["Extrême −8D",2]].map(([l,v])=>`<button class="chip" data-pa="rrng" data-v="${v}" aria-pressed="${(+R.rng||0)===v}">${l}</button>`).join("")}</div>`:""}
+   ${R.kind==="att"&&pRngOk(p,P.w)?`<div class="prmode prrng" role="group" aria-label="Distance de tir">${[["Normale",0],["Longue −4D",1],["Extrême −8D",2]].map(([l,v])=>`<button class="chip" data-pa="rrng" data-v="${v}" aria-pressed="${(+R.rng||0)===v}">${l}</button>`).join("")}</div>`:""}
    <div class="prrow"><span>Modificateur</span>${pStep2("rmod",R.mod>0?"+"+R.mod:R.mod)}</div>
    ${R.kind!=="init"?"":`<div class="prrow"><span>Ego dépensé <small>(+1D, max 3 · reste ${egoLeft})</small></span>${pStep2("rego",R.ego)}</div>`}
    ${R.kind==="init"||R.kind==="def"||R.kind==="sonic"?"":`<div class="prdifw"><span>Difficulté</span><div class="diffs prdif">${[1,2,3,4,5,6,7,8,9,10].map(d=>`<button class="chip" data-pa="rdiff" data-v="${d}" aria-pressed="${R.diff===d}">${d}</button>`).join("")}</div></div>`}
