@@ -155,13 +155,17 @@ const P_SEL={sexe:["Masculin","Féminin"],culture:P_CULTURES,concept:P_NOMS.conc
 const P_ID=[["nom","Nom"],["age","Âge"],["rang","Rang"],["xp","Expérience"],["sexe","Sexe"],["taille","Taille"],["poids","Poids"],["lc","LC / dinars"],["culture","Culture"],["concept","Concept"],["culte","Culte"]];
 const herFind=n=>{const q=norm(n).trim();return q?P_HER.find(h=>norm(h.n)===q)||P_HER.find(h=>q.startsWith(norm(h.n)+" ")||q.startsWith(norm(h.n)+"(")):null};
 const P_LISTS={
- armes:{t:"Armes",f:[["nom","Nom"],["comp","Compétence d’attaque"],["man","Maniement"],["portee","Portée"],["deg","Dégâts"],["charg","Chargeur"],["cal","Calibre"],["cur","Balles dans l’arme","n"],["qte","Grenades possédées","n"],["prop","Propriétés"],["enc","Enc."],["tech","Tech"],["empl","Empl."]],bz:r=>r._grp==="armes"&&r._cat!=="Munitions"},
- armures:{t:"Armures",f:[["nom","Nom"],["va","Valeur d’armure"],["prop","Propriétés"],["enc","Enc."],["tech","Tech"],["empl","Empl."]],bz:r=>r._grp==="protection"},
+ armes:{t:"Armes",f:[["nom","Nom"],["comp","Compétence d’attaque"],["man","Maniement"],["portee","Portée"],["deg","Dégâts"],["charg","Chargeur"],["cal","Calibre","c"],["cur","Balles dans l’arme","n"],["qte","Grenades possédées","n"],["prop","Propriétés"],["enc","Enc."],["tech","Tech"],["empl","Empl."],["fam","Type d’arme (mods)","s"]],bz:r=>r._grp==="armes"&&r._cat!=="Munitions"&&!/^Modifications/.test(r._cat||"")},
+ armures:{t:"Armures",f:[["nom","Nom"],["va","Valeur d’armure"],["prop","Propriétés"],["enc","Enc."],["tech","Tech"],["empl","Empl."]],bz:r=>r._grp==="protection"&&!/^Modifications/.test(r._cat||"")},
  mun:{t:"Munitions",f:[["nom","Calibre ou type"],["chargeurs","Chargeurs (indicatif)","n"],["balles","Balles (total, armes comprises)","n"],["deg","Dégâts"]],bz:r=>r._cat==="Munitions"},
  equip:{t:"Équipement et consommables",f:[["nom","Nom"],["qte","Quantité","n"],["enc","Enc."],["effet","Effet ou note"],["combat","À portée de main en combat","b"]],bz:r=>["equipement","medical"].includes(r._grp)||(r._grp==="armes"&&r._cat==="Agents chimiques")},
 };
+/* calibres : les variantes d’écriture d’un même calibre du Bazar (5.56x45mm / 5,56×45 mm…) sont ramenées à une seule entrée */
+const P_CALALIAS=[[/5[.,]56\s*[x×]\s*45/i,"5.56x45 mm"],[/^(calibre\s*12|12\s*mm)/i,"Calibre 12"],[/e-?cube/i,"E-Cube"],[/^14\s*mm/i,"14 mm"]];
+const pCalCanon=c=>{c=String(c||"").trim();const a=P_CALALIAS.find(([r])=>r.test(c));return a?a[1]:c};
+const P_CALS=[...new Set(BAZAR.filter(r=>r._grp==="armes"&&r._cat!=="Grenades"&&r._cat!=="Explosifs"&&r["Cal."]&&!/^(–|Spécial|Grenades|Missile|Cartouches?)$|Charbon/.test(r["Cal."])).map(r=>pCalCanon(r["Cal."])))].sort((a,b)=>a.localeCompare(b,"fr"));
 const P_FROMBZ={
- armes:r=>Object.assign({nom:r.Nom,comp:r._skill||"",man:r["Man."],portee:r["Portée"],deg:r["Dégâts"],charg:r["Charg."],cal:r["Cal."],prop:r["Propriétés"],enc:r["Enc."],tech:r.Tech,empl:r["Empl."]},/d[ée]viation/i.test(r["Propriétés"]||"")?{qte:1}:{}),
+ armes:r=>Object.assign({nom:r.Nom,comp:r._skill||"",man:r["Man."],portee:r["Portée"],deg:r["Dégâts"],charg:r["Charg."],cal:pCalCanon(r["Cal."]),prop:r["Propriétés"],enc:r["Enc."],tech:r.Tech,empl:r["Empl."],cat:r._cat||""},/d[ée]viation/i.test(r["Propriétés"]||"")?{qte:1}:{}),
  armures:r=>({nom:r.Nom,va:r["Valeur d’armure"]||(r["Défense"]?"Défense "+r["Défense"]+(r.Attaque&&r.Attaque!=="–"?" · Attaque "+r.Attaque:""):""),prop:r["Propriétés"],enc:r["Enc."],tech:r.Tech,empl:r["Empl."]}),
  mun:r=>({nom:r.Nom,chargeurs:0,balles:0,deg:r["Dégâts"]}),
  equip:r=>({nom:r.Nom,qte:1,enc:r["Enc."],effet:r.Effet||r["Propriétés"]||"",combat:false})};
@@ -202,7 +206,125 @@ const P_PARC=[["rang","Rang",'<path d="M4 7l8-4 8 4M4 12.5l8-4 8 4M4 18l8-4 8 4"
   ["lc","LC / dinars",'<circle cx="12" cy="12" r="9"/><path d="M12 6.5v11M9.2 9.2h4.1a1.6 1.6 0 010 3.2h-2.6a1.6 1.6 0 000 3.2h4.2"/>',""]];
 const pParcours=p=>`<div class="pparc">${P_PARC.map(([k,l,svg])=>`<label class="ppc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${svg}</svg><span>${l}</span>${pIn(k,p[k],"—")}</label>`).join("")}</div>`;
 function pAvatar(p,cls){const ic=cultIcon(p.culte)||cultIcon(p.culture);return `<span class="pav ${cls||""}"><span class="pvi">${ic||`<b>${esc(DG((p.nom||"?").charAt(0)))}</b>`}</span></span>`}
-function pEnc(p){return p.armes.reduce((s,x)=>s+nb(x.enc),0)+p.armures.reduce((s,x)=>s+nb(x.enc),0)+p.equip.reduce((s,x)=>s+nb(x.enc)*Math.max(1,nb(x.qte)||0),0)}
+/* ───── Modifications (mods) des armes et des armures : liste à choisir, emplacements (Empl.) comptés ───── */
+/* familles : c = corps à corps, a = projectiles archaïques, e = énergétiques, f = armes à feu modernes, r = armures ; "w" = toutes les armes
+   fx : effets calculés (deg, man = dés de Maniement, enc, arm = armure, cap = chargeur/charges, mul = multiplicateur de charges) */
+const P_MODS=[
+ {id:"aff",n:"Affûtage",c:1,fam:"c",fx:{deg:1},t:"+1 dégât"},
+ {id:"all",n:"Allègement",c:1,fam:"c",fx:{deg:-1,man:1,enc:-1},once:1,ok:x=>nb(x.enc)>=2?"":"Enc. 2 minimum",t:"−1 dégât, Maniabilité +1D, Enc. −1 (une seule fois, arme d’Enc. 2 minimum)"},
+ {id:"equ",n:"Équilibrage",c:1,fam:"c",fx:{man:1},t:"Maniabilité +1D"},
+ {id:"vis",n:"Appareil de visée",c:1,fam:"a",fx:{man:1},t:"Maniabilité +1D"},
+ {id:"str",n:"Structure renforcée",c:1,fam:"a",fx:{deg:1,enc:1},t:"+1 dégât, Portée +25 %, Enc. +1"},
+ {id:"cir",n:"Circuits en série",c:1,fam:"e",fx:{deg:1,cap:-2},t:"+1 dégât, charges −2"},
+ {id:"eff",n:"Efficacité",c:1,fam:"e",fx:{cap:2},t:"+2 charges"},
+ {id:"rgp",n:"Regroupement",c:2,fam:"e",fx:{mul:2,enc:1},once:1,ok:x=>/e-?cube/.test(norm(x.cal||""))?"":"Condition : E-Cube",t:"Nombre de charges ×2, Enc. +1 (condition : E-Cube)"},
+ {id:"agr",n:"Agrandissement du chargeur",c:1,fam:"f",fx:{capAgr:1},t:"Chargeur standard de 9 ou moins : +1 ; plus grand : +3"},
+ {id:"cac",pp:{flag:"Apte au corps à corps"},n:"Apte au corps à corps",c:1,fam:"f",once:1,t:"L’arme peut s’utiliser au Corps à corps (dégâts du couteau, sans propriétés de l’arme à feu)"},
+ {id:"can",n:"Changement de canon",c:1,fam:"f",once:1,t:"Nouveau calibre au choix (modifie le champ Calibre ; munitions adaptées). Une seule fois. Les .50 GL gagnent « Coup de tonnerre »"},
+ {id:"lun",n:"Lunette de visée",c:1,fam:"f",fx:{man:1},t:"Maniabilité +1D"},
+ {id:"cam",pp:{n:"Camouflage",d:2},pw:"Camouflage (diff.) : arme discrète ; INS+Perception (diff.) pour la repérer.",pr:`Camouflage (diff.) : INS+Perception (diff.) pour repérer le porteur.`,n:"Camouflage (2)",c:2,fam:"cfr",once:1,t:"Propriété Camouflage (2)"},
+ {id:"cam+",pp:{n:"Camouflage",d:1},n:"Camouflage +1",c:1,fam:"cfr",rep:1,req:"cam",t:"+1 point de Camouflage"},
+ {id:"con",pp:{flag:"Contondant"},pw:"Contondant : efficace contre les armures Massives.",n:"Contondant",c:1,fam:"c",once:1,t:"Propriété Contondant"},
+ {id:"rg3",pp:{n:"Régularité",d:3,suf:"DC"},pw:"Régularité (DC) : avec ce nombre de DC, nouvelle attaque immédiate à −2D (cumulable).",n:"Régulier (3DC)",c:2,fam:"cf",once:1,t:"Propriété Régulier (3DC)"},
+ {id:"rg-",pp:{n:"Régularité",d:-1,suf:"DC"},n:"Régulier −1DC",c:2,fam:"cf",rep:1,req:"rg3",t:"−1DC pour la Régularité"},
+ {id:"ter",pp:{n:"Terrifiant",d:2},pw:"Terrifiant (diff.) : PSY+Foi/Volonté (diff.) ou −2D à la prochaine action.",pr:`Terrifiant (diff.) : qui attaque le porteur fait un test de PSY+Foi/Volonté (diff.) ; en cas d’échec, −2D à ses attaques contre lui. Une fois la peur vaincue, immunisé pour le reste du combat.`,n:"Terrifiant (2)",c:1,fam:"cfr",once:1,t:"Propriété Terrifiant (2)"},
+ {id:"ter+",pp:{n:"Terrifiant",d:1},n:"Terrifiant +1",c:1,fam:"cfr",rep:1,req:"ter",t:"+1 point de Terrifiant"},
+ {id:"dbl",pp:{flag:"Double canon"},pw:"Double canon : tirer les deux canons ensemble double les dégâts.",n:"Double canon",c:3,fam:"f",once:1,t:"Double canon"},
+ {id:"enl",n:"Enlever une propriété",c:2,fam:"f",t:"Retire une propriété de l’arme (à noter sur la fiche)"},
+ {id:"eff1",pp:{n:"Effroyable",d:1},pw:"Effroyable (niveau) : ajoute (niveau) déclencheur(s) bonus quand l’arme cause une Complication (au moins un déclencheur doit d’abord être dépensé pour infliger la Complication).",n:"Effroyable +1",c:1,fam:"w",rep:1,t:"Propriété Effroyable : un emplacement pour +1"},
+ {id:"ass1",pp:{n:"Assommement",d:1},pw:"Assommement (niveau) : la cible subit la Complication Désorientation, à un niveau égal à celui de la propriété.",n:"Assommement +1",c:1,fam:"w",rep:1,t:"Propriété Assommement : un emplacement pour +1"},
+ {id:"pan3",pp:{n:"Panique",d:3},pw:"Panique (niveau) : quiconque voit l’arme exercer ses ravages fait un jet de Défense mentale dont la difficulté égale le niveau ; en cas d’échec, la cible subit la Complication Obusite.",n:"Panique +3",c:2,fam:"w",rep:1,t:"Propriété Panique : deux emplacements pour +3"},
+ {id:"dra",pp:{flag:"Dragonne"},n:"Dragonne",c:1,fam:"w",once:1,t:"Difficulté +2 aux tentatives de désarmement, ou +4D pour garder un objet en main"},
+ {id:"ren",n:"Renforcement",c:1,fam:"r",rep:1,fx:{arm:1,enc:1},t:"Armure +1, Encombrement +1"},
+ {id:"hem",pp:{n:"Hermétique",d:1,pre:"+",suf:"S"},pr:`Hermétique (+XS) : succès automatiques contre gaz, spores et toxines inhalés.`,n:"Hermétique (+1S)",c:2,fam:"r",once:1,t:"Propriété Hermétique (+1S)"},
+ {id:"hem+",pp:{n:"Hermétique",d:1,pre:"+",suf:"S"},n:"Hermétique +1S",c:1,fam:"r",rep:1,req:"hem",t:"+1S"},
+ {id:"ign",pp:{n:"Ignifugé",d:3},pr:`Ignifugé (X) : protège du feu et ne s’enflamme pas.`,n:"Ignifugé (+3 à l’armure)",c:2,fam:"r",once:1,t:"Propriété Ignifugé : +3 à l’armure contre le feu"},
+ {id:"ign+",pp:{n:"Ignifugé",d:1},n:"Ignifugé +1 Armure",c:1,fam:"r",rep:1,req:"ign",t:"+1 Armure (feu)"},
+ {id:"iso",pp:{flag:"Isolant"},pr:`Isolant : protège entièrement des décharges électriques ; tout dégât d’électricité est réduit à zéro.`,n:"Isolant",c:2,fam:"r",once:1,t:"Propriété Isolant"},
+ {id:"mas",pp:{n:"Massif",d:2},pr:`Massif (X) : contre lames et armes pointues, l’armure vaut X. Les armes contondantes qui dépassent la valeur normale blessent quand même.`,n:"Massif (+2 à l’armure)",c:3,fam:"r",once:1,t:"Propriété Massif : +2 à l’armure"},
+ {id:"mas+",pp:{n:"Massif",d:1},n:"Massif +1 Armure",c:1,fam:"r",rep:1,req:"mas",t:"+1 Armure (Massif)"},
+ {id:"pab",pp:{n:"Pare-balles",d:3},pr:`Pare-balles (X) : contre les armes à feu, l’armure vaut X.`,n:"Pare-balles (+3 à l’armure)",c:3,fam:"r",once:1,t:"Propriété Pare-balles : +3 à l’armure contre les balles"},
+ {id:"pab+",pp:{n:"Pare-balles",d:1},n:"Pare-balles +1 Armure",c:1,fam:"r",rep:1,req:"pab",t:"+1 Armure (balles)"}
+];
+const P_MODID=Object.fromEntries(P_MODS.map(m=>[m.id,m]));
+const P_FAMN={c:"Corps à corps",a:"Projectiles archaïques",e:"Énergétique",f:"Arme à feu moderne"};
+const P_FAMBYNAME=Object.fromEntries(Object.entries(P_FAMN).map(([k,v])=>[v,k]));
+/* famille d’une arme : choix manuel (champ « Type d’arme »), sinon d’après la catégorie du Bazar, sinon d’après ses caractéristiques */
+function pModFam(x,key){
+  if(key==="armures")return "r";
+  if(P_FAMBYNAME[x.fam])return P_FAMBYNAME[x.fam];
+  if(/d[ée]viation/i.test(String(x.prop||"")))return "";            /* grenades : pas de mods */
+  const c=norm(x.cat||""),cmp=norm(x.comp||""),cal=norm(x.cal||"");
+  if(/e-?cube|energ/.test(cal)||c==="armes soniques")return "e";
+  if(c==="lutte"||c==="corps a corps")return "c";
+  if(c==="arcs & arbalettes"||c==="armes de jet")return "a";
+  if(c==="armes de poing"||c==="fusils"||c==="armes lourdes")return "f";
+  if(/corps a corps|lutte/.test(cmp))return "c";
+  if(/fleche|carreau|harpon|clou|jet/.test(cal))return "a";
+  return (Math.floor(nb(x.charg))>0||cal)?"f":"a";
+}
+/* mods posés : texte libre (anciennes fiches) = 1 emplacement ; {m:id} = mod de la liste */
+function pModsOf(x){return (Array.isArray(x.mods)?x.mods:[]).map((m,i)=>{
+  if(m&&typeof m==="object"){const d=P_MODID[m.m];return {i,id:m.m,c:d?d.c:1,n:d?d.n:String(m.m),d}}
+  const t=String(m??"").trim();return t?{i,id:null,c:1,n:t,d:null}:null}).filter(Boolean)}
+const pModSlots=(x,key)=>(key==="armes"||key==="armures")?Math.max(0,Math.min(12,Math.floor(nb(x.empl)))):0;
+const pModUsed=x=>pModsOf(x).reduce((s,m)=>s+m.c,0);
+/* effets « de secours » : ceux qu’on ne peut pas écrire dans les champs de l’arme (ex. −1 dégât sur une formule F/3), + anciennes fiches */
+function pModFx(x,key){
+  const f={deg:0,man:0,enc:0,arm:0,cap:0,mul:1};
+  if(!x||!Array.isArray(x.mods))return f;
+  const base=Math.floor(nb(x.charg));
+  pModsOf(x).forEach(m=>{if(!m.d)return;const raw=x.mods[m.i],e=raw&&raw.ap?(raw.fb||{}):(m.d.fx||{});
+    f.deg+=e.deg||0;f.man+=e.man||0;f.enc+=e.enc||0;f.arm+=e.arm||0;f.cap+=e.cap||0;f.mul*=e.mul||1;
+    if(e.capAgr)f.cap+=base<=9?1:3});
+  return f}
+/* ── pose / retrait d’un mod : les champs de l’arme (Man., Dégâts, Chargeur, Enc., Armure, Propriétés) sont modifiés pour de vrai ── */
+const pRx=t=>String(t).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+const pTidy=t=>String(t).replace(/\s*[,;]\s*(?=[,;])/g,"").replace(/^[\s,;]+|[\s,;]+$/g,"").replace(/\s*[,;]\s*/g,", ");
+function pPropBump(x,sp,d){ /* niveau d’une propriété « Nom (n) » : +d ; retirée si ≤ 0 ; ajoutée si absente */
+  const pr=String(x.prop||"").replace(/^[–-]$/,""),re=new RegExp(pRx(sp.n)+"\\s*\\(\\s*(\\+?)(\\d+)\\s*([A-Za-z]*)\\s*\\)","i"),m=pr.match(re);
+  if(m){const n=+m[2]+d;x.prop=pTidy(pr.replace(re,n>0?`${sp.n} (${m[1]}${n}${m[3]})`:""))}
+  else if(d>0)x.prop=pTidy((pr?pr+", ":"")+`${sp.n} (${sp.pre||""}${d}${sp.suf||""})`)}
+function pPropFlag(x,name,on){
+  const pr=String(x.prop||"").replace(/^[–-]$/,""),re=new RegExp("(^|[,;]\\s*)"+pRx(name)+"(?=\\s*([,;]|$))","i");
+  if(on&&!re.test(pr))x.prop=pTidy((pr?pr+", ":"")+name);
+  else if(!on&&re.test(pr))x.prop=pTidy(pr.replace(re,"$1"))}
+function pDegAdd(x,d){ /* → true si la formule de dégâts a pu être ajustée */
+  const t=String(x.deg||"").trim().replace(/\s+/g,"");
+  if(/^\d+$/.test(t)){const v=+t+d;if(v<0)return false;x.deg=String(v);return true}
+  const m=t.match(/^(?:(\d+)\+)?F(?:\/(\d+))?(?:\+(\d+))?$/i);if(!m)return false;
+  const e=(+m[3]||0)+d;if(e<0)return false;
+  x.deg=(m[1]?m[1]+"+":"")+(m[2]?"F/"+m[2]:"F")+(e?"+"+e:"");return true}
+const pNumAdd=(x,f,d)=>{const c=nb(x[f]),n=Math.max(0,Math.round((c+d)*10)/10);x[f]=String(n);return n-c};
+function pManAdd(x,d){const t=String(x.man||"").replace(/[\u2212\u2013\u2014\u2012]/g,"-").match(/([+\-])?\s*(\d+)/),c=t?(t[1]==="-"?-1:1)*(+t[2]):0,v=c+d;x.man=(v>=0?"+":"-")+Math.abs(v)+"D"}
+function pModApply(x,key,m,extra){
+  const fx=m.fx||{},ap=[],fb={};
+  if(fx.deg){if(pDegAdd(x,fx.deg))ap.push({f:"deg",d:fx.deg});else fb.deg=fx.deg}
+  if(fx.man){pManAdd(x,fx.man);ap.push({f:"man",d:fx.man})}
+  if(fx.enc){const r=pNumAdd(x,"enc",fx.enc);if(r)ap.push({f:"enc",d:r})}
+  if(fx.arm){if(/^\d+$/.test(String(x.va||"").trim())){pNumAdd(x,"va",fx.arm);ap.push({f:"va",d:fx.arm})}else fb.arm=fx.arm}
+  const n=Math.floor(nb(x.charg));
+  if(n>0&&(fx.cap||fx.capAgr||fx.mul)){let d=(fx.cap||0)+(fx.capAgr?(n<=9?1:3):0);if(fx.mul)d+=n*(fx.mul-1);if(d){pNumAdd(x,"charg",d);ap.push({f:"charg",d})}}
+  if(m.pp){if(m.pp.flag){pPropFlag(x,m.pp.flag,true);ap.push({f:"flag",n:m.pp.flag})}else{pPropBump(x,m.pp,m.pp.d);ap.push({f:"prop",sp:m.pp,d:m.pp.d})}}
+  if(extra&&extra.cal){ap.push({f:"cal",old:x.cal||"",nw:extra.cal});x.cal=extra.cal;if(/\.50/.test(extra.cal)){pPropFlag(x,"Coup de tonnerre",true);ap.push({f:"flag",n:"Coup de tonnerre"})}}
+  if(key==="armes"&&x.cur!=null)x.cur=Math.min(+x.cur||0,pCap(x));
+  return {m:m.id,ap,fb}}
+function pModRevert(x,key,e){
+  if(!e||!e.ap)return;
+  e.ap.slice().reverse().forEach(a=>{
+    if(a.f==="deg")pDegAdd(x,-a.d);else if(a.f==="man")pManAdd(x,-a.d);else if(a.f==="enc"||a.f==="va"||a.f==="charg")pNumAdd(x,a.f,-a.d);
+    else if(a.f==="prop")pPropBump(x,a.sp,-a.d);else if(a.f==="flag")pPropFlag(x,a.n,false);
+    else if(a.f==="cal"&&x.cal===a.nw)x.cal=a.old});
+  if(key==="armes"&&x.cur!=null)x.cur=Math.min(+x.cur||0,pCap(x))}
+const pModAvail=(x,key,m)=>{ /* → "" si le mod peut être posé, sinon la raison */
+  const fam=pModFam(x,key),used=pModUsed(x),free=pModSlots(x,key)-used,have=pModsOf(x).map(y=>y.id);
+  if(!(m.fam==="w"?(key==="armes"&&fam):m.fam.includes(fam)))return "autre type d’équipement";
+  if(m.once&&have.includes(m.id))return "déjà posé";
+  if(m.req&&!have.includes(m.req))return "nécessite "+P_MODID[m.req].n;
+  if(m.c>free)return m.c+" empl. nécessaires";
+  if(m.ok){const r=m.ok(x);if(r)return r}
+  return ""};
+function pEnc(p){return p.armes.reduce((s,x)=>s+nb(x.enc)+pModFx(x,"armes").enc,0)+p.armures.reduce((s,x)=>s+nb(x.enc)+pModFx(x,"armures").enc,0)+p.equip.reduce((s,x)=>s+nb(x.enc)*Math.max(1,nb(x.qte)||0),0)}
 const boxes=(path,v,n,edit)=>`<span class="bxs${edit?" ed":""}">${Array.from({length:n},(_,i)=>edit?`<button class="bx${i<v?" on":""}" data-pa="box" data-k="${path}" data-v="${i+1}" aria-label="${i+1}"></button>`:`<i class="bx${i<v?" on":""}"></i>`).join("")}</span>`;
 const pIn=(path,val,ph,list,type)=>`<input class="pin" data-pf="${path}" value="${esc(val)}"${ph?` placeholder="${esc(ph)}"`:""}${list?` list="${list}"`:""}${type==="n"?` inputmode="numeric"`:""} autocomplete="off">`;
 const pSel=(path,val,opts,ph)=>{val=String(val??"");const L=val&&!opts.includes(val)?[val,...opts]:opts;return `<select class="pin psel" data-pf="${path}"><option value="">${esc(ph||"—")}</option>${L.map(o=>`<option${o===val?" selected":""}>${esc(o)}</option>`).join("")}</select>`};
@@ -263,7 +385,7 @@ function pFiche(p){
    Blessures, Traumatismes, Sporulations : la piste stocke les cases cochées. */
 const P_ABBR={PHY:"PHY",AGI:"AGI",CHA:"CHA",INT:"INT",PSY:"PSY",INS:"INS"};
 /* Maniement : bonus ou malus en D aux jets d’attaque et de défense avec l’arme (+1, +1d, +1 D, −2…) */
-function pMan(w){const s=String(w&&w.man||"").replace(/[\u2212\u2013\u2014\u2012]/g,"-").trim();const m=s.match(/([+\-])?\s*(\d+)\s*(?:d\b|d$)?/i);if(!m)return 0;return (m[1]==="-"?-1:1)*(+m[2])}
+function pMan(w){const fx=w?pModFx(w,"armes").man:0,s=String(w&&w.man||"").replace(/[\u2212\u2013\u2014\u2012]/g,"-").trim();const m=s.match(/([+\-])?\s*(\d+)\s*(?:d\b|d$)?/i);if(!m)return fx;return (m[1]==="-"?-1:1)*(+m[2])+fx}
 const pManTxt=n=>n?` ${n>0?"+":"−"} Maniement ${Math.abs(n)}`:"";
 function pWV(p,w){const va=pVA(p,w.comp),n=pMan(w);if(!va)return null;return {v:Math.max(0,va.v+n),m:n,t:va.t+pManTxt(n)}}
 function pVA(p,comp){
@@ -276,9 +398,9 @@ function pVA(p,comp){
 const pRafale=w=>{const m=String(w&&w.prop||"").match(/rafales?\s*\((\d+)\)/i);return m?+m[1]:0};
 const pRanged=(p,w)=>pCap(w)>0||/projectile|jet/i.test(norm(w.comp));
 const pMelee=(p,w)=>!pRanged(p,w)&&/corps a corps|lutte/.test(norm(w.comp)||"corps a corps");
-const pCap=w=>{const n=Math.floor(nb(w.charg));return n>0?n:0};
+const pCap=w=>{const n=Math.floor(nb(w.charg));if(n<=0)return 0;const f=pModFx(w,"armes");return Math.max(0,Math.round((n+f.cap)*f.mul))};
 const pLoaded=w=>Math.max(0,Math.min(pCap(w),+w.cur||0)); /* balles réellement dans l’arme : saisies dans l’Inventaire (0 par défaut) */
-const calKey=s=>norm(s).replace(/[^a-z0-9]/g,"");
+const calKey=s=>norm(String(s||"").replace(/×/g,"x")).replace(/[^a-z0-9]/g,"");
 function pAmmoFor(p,w){const c=calKey(w.cal);if(!c)return [];return p.mun.filter(m=>{const n=calKey(m.nom);return n&&(n.includes(c)||c.includes(n))})}
 function pTrauMalus(p){return +p.pistes.trau.v||0}
 function trackBoxes(n,on,cls,perm){return `<span class="tbx ${cls}">${Array.from({length:n},(_,i)=>`<i class="${i<perm?"on perm":i<on?"on":""}"></i>`).join("")}</span>`}
@@ -331,15 +453,15 @@ function pPlan(p,R){
 }
 /* dégâts de l’arme : nombre, ou formule avec F = PHY+Force (F/2, F/3 arrondis au supérieur), ex. « 2+F/3 » */
 /* dégâts de l’arme : nombre, ou formule avec F = PHY+Force (F/2, F/3 arrondis au supérieur), ex. « 2+F/3 » */
-function pDmgBase(p,d){
-  d=String(d||"").trim().replace(/\s+/g,"");if(/^\d+$/.test(d))return {v:+d,plain:true};
+function pDmgBase(p,d,w){
+  const fx=w?pModFx(w,"armes").deg:0;d=String(d||"").trim().replace(/\s+/g,"");if(/^\d+$/.test(d))return {v:Math.max(0,+d+fx),plain:true,mod:fx};
   const m=d.match(/^(?:(\d+)\+)?F(?:\/(\d+))?(?:\+(\d+))?$/i);if(!m||!p)return null;
-  const PH=+p.a.PHY||0,FO=+p.k.Force||0,F=PH+FO,n=m[2]?+m[2]:0,fv=n?Math.ceil(F/n):F,v=(+m[1]||0)+fv+(+m[3]||0);
+  const PH=+p.a.PHY||0,FO=+p.k.Force||0,F=PH+FO,n=m[2]?+m[2]:0,fv=n?Math.ceil(F/n):F,v=Math.max(0,(+m[1]||0)+fv+(+m[3]||0)+fx);
   const expr=[m[1],n?"F/"+n:"F",m[3]].filter(Boolean).join(" + "),vals=[m[1],fv,m[3]].filter(x=>x!==undefined&&x!=="").join(" + ");
   const why=`F = PHY ${PH} + Force ${FO} = ${F}`+(n?` ; ${F}/${n} ${F%n?"arrondi à":"="} ${fv}`:"");
-  return {v,html:`${esc(expr)} → ${vals.includes("+")?esc(vals)+" = ":""}<b>${v}</b> <small>(${esc(why)})</small>`};
+  return {v,mod:fx,html:`${esc(expr)} → ${vals.includes("+")?esc(vals)+" = ":""}<b>${v}</b> <small>(${esc(why)}${fx?" ; mods "+(fx>0?"+":"")+fx:""})</small>`};
 }
-function pDmgVal(w,rafDmg,trig,p){const b=pDmgBase(p,String(w&&w.deg||"").trim());return b?b.v+rafDmg+trig:null}
+function pDmgVal(w,rafDmg,trig,p){const b=pDmgBase(p,String(w&&w.deg||"").trim(),w);return b?b.v+rafDmg+trig:null}
 /* résumé d’une attaque déjà lancée (enchaînement de Régularité) */
 const pRd=(rd,i)=>(Array.isArray(rd)?rd[i]:rd)||0;
 function pChainLine(c,w,p){
@@ -347,10 +469,10 @@ function pChainLine(c,w,p){
     return `<span>${c.res.length>1?`Cible ${i+1} : `:""}${ok?"réussite":r.ones>r.succ?"échec critique":"échec"} · ${r.succ} S · ${r.trig} DC${ok?` · dégâts <b>${dv!=null?dv:esc(String(w&&w.deg||"?"))+(r.trig?" + "+r.trig+" DC":"")}</b>`:""}</span>`}).join("")}</div>`;
 }
 function pDmg(w,rafDmg,trig,p){
-  const d=String(w&&w.deg||"").trim();if(!d)return "";const b=pDmgBase(p,d);
+  const d=String(w&&w.deg||"").trim();if(!d)return "";const b=pDmgBase(p,d,w);
   if(!b)return [esc(d),rafDmg&&rafDmg+" (rafale)",trig&&trig+" DC"].filter(Boolean).join(" + ");
   const extra=[rafDmg&&rafDmg+" (rafale)",trig&&trig+" DC"].filter(Boolean);
-  const first=b.plain?(extra.length?String(b.v):`<b>${b.v}</b>`):b.html;
+  const first=b.plain?(extra.length?String(b.v):`<b>${b.v}</b>`)+(b.mod?` <small>(mods ${b.mod>0?"+":""}${b.mod})</small>`:""):b.html;
   return extra.length?`${first} + ${extra.join(" + ")} = <b>${b.v+rafDmg+trig}</b>`:first;
 }
 function pOneRes(r,dif,kind,w,rafDmg,title,p){
@@ -450,7 +572,7 @@ function pArmorPots(p){const lv=n=>p.pots.filter(x=>norm(String(x.n||"")).replac
   return [["Cuir d’éléphant",lv("cuirdelephant")],["Carapace (Dur à cuire)",lv("duracuire")]].filter(x=>x[1]>0)}
 function pArmorBlock(p){
   const L=p.armures.map((x,i)=>[x,i]),bon=pArmorPots(p),bt=bon.reduce((s,x)=>s+x[1],0);
-  const worn=L.filter(([x])=>x.porte!==false),tot=worn.reduce((s,[x])=>s+nb(x.va),0)+bt;
+  const worn=L.filter(([x])=>x.porte!==false),tot=worn.reduce((s,[x])=>s+nb(x.va)+pModFx(x,"armures").arm,0)+bt;
   const props=[...new Set(worn.flatMap(([x])=>String(x.prop||"").split(/[,;]/).map(t=>t.trim()).filter(Boolean)))];
   const chips=bon.map(([n,v])=>`<span class="bon">${esc(n)} +${v}</span>`).concat(props.map(t=>`<span>${esc(t)}</span>`));
   return `<section class="psec parm"><div class="pst">Armure</div>
@@ -474,7 +596,7 @@ function pCombat(p){
     const va=pWV(p,w),cap=pCap(w),ld=pLoaded(w),am=pAmmoFor(p,w);
     const stock=am.reduce((s,m)=>({c:s.c+(+m.chargeurs||0),b:s.b+(+m.balles||0)}),{c:0,b:0});
     return `<div class="pwpn"><div class="pwh"><span class="pwn">${esc(w.nom||"Arme")}</span>${va?`<span class="pwva">${va.v}D</span>`:""}</div>
-     <div class="pil">${esc([w.deg&&"Dégâts "+w.deg,w.portee&&"Portée "+w.portee,va?va.t:pSonic(w)?"INT + Technologie, puis PSY + Domination":(w.comp?w.comp+" (compétence non reconnue)":"Compétence d’attaque à renseigner")].filter(Boolean).join(" · "))}</div>
+     <div class="pil">${esc([w.deg&&"Dégâts "+pDegTxt(w),w.portee&&"Portée "+w.portee,va?va.t:pSonic(w)?"INT + Technologie, puis PSY + Domination":(w.comp?w.comp+" (compétence non reconnue)":"Compétence d’attaque à renseigner")].filter(Boolean).join(" · "))}</div>
      ${w.prop?`<div class="pil pml">${esc(w.prop)}</div>`:""}${pGrenade(w)?`<div class="pammo pgren">${(+w.qte||0)>0?`<span class="pgi">${Array.from({length:Math.min(+w.qte||0,12)},()=>IC_GRENADE).join("")}</span>`:`<span class="pil">Plus de grenade</span>`}<span class="pamt">${+w.qte||0}</span></div>`:""}
      ${cap?`<div class="pammo">${trackBoxes(cap,ld,"ammo")}<span class="pamt">${ld}/${cap}</span></div>
        <div class="pil">${w.cal?`Réserve ${esc(w.cal)} : ${stock.b} balle${stock.b>1?"s":""}${stock.c?` (${stock.c} chargeur${stock.c>1?"s":""})`:""}`:"Indique le calibre de l’arme dans l’Inventaire pour recharger depuis la réserve."}</div>`:""}
@@ -602,9 +724,15 @@ function pSheet(p){
 function pMunLoaded(p,x){const c=calKey(x.nom);if(!p||!c)return 0;return p.armes.filter(w=>pCap(w)&&calKey(w.cal)&&(calKey(w.cal).includes(c)||c.includes(calKey(w.cal)))).reduce((s,w)=>s+pLoaded(w),0)}
 /* valeur affichée d’un compteur : pour les munitions, le total (réserve + balles chargées) ; les + / − modifient la réserve */
 const pQtyShow=(p,key,f,x)=>key==="mun"&&f==="balles"?(+x.balles||0)+pMunLoaded(p,x):+x[f]||0;
+/* valeurs affichées d’une arme / armure, mods compris */
+const pSgn=n=>(n<0?"−":"+")+Math.abs(n);
+function pManVal(w){const f=pModFx(w,"armes").man;return f?pSgn(pMan(w))+"D":w.man}
+function pDegTxt(w){const f=pModFx(w,"armes").deg,d=String(w.deg||"").trim();return !f||!d?w.deg:/^\d+$/.test(d)?String(Math.max(0,+d+f)):d+pSgn(f)}
+function pEncTxt(x,key){const f=pModFx(x,key).enc;return f&&nb(x.enc)+f>=0?String(nb(x.enc)+f):x.enc}
+function pVaTxt(x){const f=pModFx(x,"armures").arm,v=String(x.va||"").trim();return !f?x.va:/^\d+$/.test(v)?String(+v+f):(v?v+" ":"")+pSgn(f)}
 function pItemLine(key,x){
-  if(key==="armes")return [x.deg&&"Dég. "+x.deg,x.portee&&"Portée "+x.portee,x.charg&&(pCap(x)?"Chargée "+pLoaded(x)+"/"+pCap(x):"Charg. "+x.charg),x.cal&&"Cal. "+x.cal,x.man&&"Man. "+x.man].filter(Boolean);
-  if(key==="armures")return [x.va&&"Armure "+x.va,x.enc&&"Enc. "+x.enc].filter(Boolean);
+  if(key==="armes")return [x.deg&&"Dég. "+pDegTxt(x),x.portee&&"Portée "+x.portee,x.charg&&(pCap(x)?"Chargée "+pLoaded(x)+"/"+pCap(x):"Charg. "+x.charg),x.cal&&"Cal. "+x.cal,(x.man||pModFx(x,"armes").man)&&"Man. "+pManVal(x),pModFx(x,"armes").enc&&"Enc. "+pEncTxt(x,"armes")].filter(Boolean);
+  if(key==="armures")return [(x.va||pModFx(x,"armures").arm)&&"Armure "+pVaTxt(x),(x.enc||pModFx(x,"armures").enc)&&"Enc. "+pEncTxt(x,"armures")].filter(Boolean);
   if(key==="mun")return [x.deg&&"Dég. "+x.deg].filter(Boolean);
   if(key==="equip")return [x.enc&&"Enc. "+x.enc,x.combat&&"combat"].filter(Boolean);
   return [x.act&&"Activation : "+x.act].filter(Boolean);
@@ -615,19 +743,32 @@ const P_LIC={
  mun:IC_BALL,
  equip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M8 7V5.5A2.5 2.5 0 0110.5 3h3A2.5 2.5 0 0116 5.5V7"/><rect x="4.5" y="7" width="15" height="14" rx="3"/><path d="M4.5 13h15M10 13v2h4v-2"/></svg>'};
 const P_WGT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M7 8h10l3 12H4z"/><circle cx="12" cy="5.5" r="2.5"/></svg>';
+/* Emplacements de mods : cases cliquables ; une case vide ouvre la liste des mods compatibles */
+function pModsUI(p,key,x,base){
+  const nm=pModSlots(x,key);if(!nm)return "";
+  const ms=pModsOf(x),used=pModUsed(x),ed=!!S.pEdit,open=ed&&S.pModOpen===base,TR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
+  let rows="",free="";
+  ms.forEach(m=>{const k="dm:"+base+":"+m.i,on=S.pConf===k,ik=base+":"+m.i,info=(S.pModInfo||{})[ik];
+    rows+=`<div class="pmrow"><button class="pmbody${info?" open":""}" data-pa="modinfo" data-k="${ik}"><b>${esc(m.n)}</b><small>${m.c} empl.</small></button>${ed?`<button class="pdelx pmdel${on?" on":""}" data-pa="conf" data-k="${k}" aria-label="Retirer ${esc(m.n)}">${on?"Retirer ?":TR}</button>`:""}</div>${info?`<div class="pminfo">${esc(m.d?m.d.t:"Mod libre (texte saisi par le joueur).")}${m.d&&(key==="armures"?m.d.pr:m.d.pw)?`<span class="pmprop">${esc(key==="armures"?m.d.pr:m.d.pw)}</span>`:""}<small>Coût : ${m.c} emplacement${m.c>1?"s":""}${m.d&&m.d.req?" · nécessite "+esc(P_MODID[m.d.req].n):""}</small></div>`:""}`});
+  for(let j=used;j<nm;j++)free+=ed?`<button class="pslot${open&&j===used?" on":""}" data-pa="modopen" data-k="${base}" aria-label="Ajouter un mod"><b>+</b><small>libre</small></button>`:"";
+  let pick="";
+  if(open){const fam=pModFam(x,key),opts=P_MODS.filter(m=>m.fam==="w"?key==="armes"&&fam:m.fam.includes(fam));
+    pick=`<div class="pmodpick">${fam||key==="armures"?"":`<p class="pnone">Ce type d’arme n’a pas de mods (choisis « Type d’arme » dans la fiche).</p>`}`+
+      opts.map(m=>{const why=pModAvail(x,key,m);return `<button class="pbzr pmo" data-pa="modadd" data-k="${base}" data-v="${m.id}"${why?" disabled":""}><span>${esc(m.n)}</span><small>${esc(why||m.c+" empl.")}</small></button>${m.id==="can"&&S.pModCan===base&&!why?`<div class="pmodtxt"><select class="pin psel" id="pmodcal"><option value="">Nouveau calibre…</option>${P_CALS.map(c=>`<option>${esc(c)}</option>`).join("")}</select><button class="btn sm" data-pa="modcan" data-k="${base}">Valider</button></div>`:""}`}).join("")+
+      `<div class="pmodtxt"><input class="pin" id="pmodtxt" placeholder="Autre mod (texte libre, 1 empl.)" autocomplete="off"><button class="btn sm" data-pa="modtxt" data-k="${base}">Ajouter</button></div></div>`}
+  return `<div class="pmods"><div class="plbl wide">Mods · ${used}/${nm} emplacement${nm>1?"s":""}</div>${rows}${free?`<div class="pslots">${free}</div>`:""}${pick}</div>`}
 function pInv(p){
   const E=S.pEdit;let h=`<div class="penc"><span class="penci">${P_WGT}</span><span class="pencl">Encombrement total</span><b>${String(Math.round(pEnc(p)*10)/10).replace(".",",")}</b></div>`;
   Object.entries(P_LISTS).forEach(([key,L])=>{
     const rows=p[key].map((x,i)=>{const base=key+"."+i;
       const nm=(key==="armes"||key==="armures")?Math.max(0,Math.min(12,Math.floor(nb(x.empl)))):0,mods=Array.isArray(x.mods)?x.mods:[];
-      const modsEd=nm?`<div class="plbl wide">Mods (${nm} emplacement${nm>1?"s":""})</div>${Array.from({length:nm},(_,j)=>pIn(base+".mods."+j,mods[j]||"","Mod "+(j+1))).join("")}`:"";
-      const modsRd=mods.slice(0,nm).filter(m=>m&&String(m).trim());
-      const okey=p.id+":"+base,Lf=L.f.filter(([f])=>!(key==="armes"&&f==="cur"&&!pCap(x))&&!(key==="armes"&&f==="qte"&&!pGrenade(x)));
+      const modsEd=nm?pModsUI(p,key,x,base):"",modsRd=[];
+      const okey=p.id+":"+base,Lf=L.f.filter(([f])=>!(key==="armes"&&f==="cur"&&!pCap(x))&&!(key==="armes"&&f==="qte"&&!pGrenade(x))&&!(f==="fam"&&!(key==="armes"&&nm&&!pGrenade(x))));
       if(E&&!(S.pOpen||{})[okey]){const sum=pItemLine(key,x).concat(nm?[nm+" mod"+(nm>1?"s":"")]:[]);const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur")).map(([f,l])=>(key==="mun"?(f==="chargeurs"?"charg. ":"balles "):"×")+pQtyShow(p,key,f,x));
         const cf=S.pConf==="del:"+base;return `<div class="pitem pcol pcw"><button class="pcopen" data-pa="itemopen" data-k="${okey}"><span class="pcoln"><span class="pin2">${esc(x.nom||"Sans nom")}</span>${sum.length||q.length?`<small>${esc(q.concat(sum).join(" · "))}</small>`:""}</span><span class="pcolm">Modifier ›</span></button><button class="pdelx${cf?" on":""}" data-pa="conf" data-k="del:${base}" aria-label="Retirer ${esc(x.nom||"")}" title="Retirer">${cf?"Retirer ?":'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>'}</button></div>`}
-      if(E)return `<div class="pitem ed"><button class="btn sm pfold" data-pa="itemopen" data-k="${okey}">‹ Replier ${esc(x.nom||"")}</button><div class="pgrid">${Lf.map(([f,l,t])=>t==="b"?`<label class="pchk"><input type="checkbox" data-pf="${base}.${f}"${x[f]?" checked":""}> ${l}</label>`:t==="n"?`<label class="pl"><span>${l}</span>${pStep(base+"."+f,pQtyShow(p,key,f,x))}</label>`:`<label class="pl${f==="nom"||f==="prop"||f==="effet"||f==="fonc"?" wide":""}"><span>${l}</span>${f==="prop"||f==="effet"||f==="fonc"?pTa(base+"."+f,x[f]||""):pIn(base+"."+f,x[f]||"")}</label>`).join("")}</div>${modsEd?`<div class="pmods">${modsEd}</div>`:""}<div class="btnrow">${pConfBtn("del:"+base,"Retirer","sm")}</div></div>`;
-      const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur"));const det=key==="mun"?[]:Lf.filter(([f,,t])=>f!=="nom"&&t!=="n"&&t!=="b"&&x[f]);
-      return `<div class="pitem ${key}"><div class="pih${key==="mun"?" mun":""}"><span class="pin2">${esc(x.nom||"—")}</span>${q.map(([f,l])=>`<span class="pq${pQtyShow(p,key,f,x)<=0?" low":""}" title="${l}">${pStep(base+"."+f,pQtyShow(p,key,f,x))}<small>${key==="mun"?(f==="chargeurs"?"charg.":"balles au total"):key==="armes"?(f==="qte"?"":"/ "+pCap(x)+" dans l’arme"):""}</small></span>`).join("")}</div>${pItemLine(key,x).length||modsRd.length||nm?`<div class="pchips">${pItemLine(key,x).map(t=>`<span>${esc(t)}</span>`).join("")}${modsRd.map(m=>`<span class="mod">Mod · ${esc(m)}</span>`).join("")}${!modsRd.length&&nm?`<span class="mod libre">${nm} emplacement${nm>1?"s":""} de mod libre${nm>1?"s":""}</span>`:""}</div>`:""}${det.length?`<details class="pdet"><summary>Détails</summary><dl class="statl">${det.map(([f,l])=>`<dt>${l}</dt><dd>${esc(x[f])}</dd>`).join("")}</dl></details>`:""}</div>`}).join("");
+      if(E)return `<div class="pitem ed"><button class="btn sm pfold" data-pa="itemopen" data-k="${okey}">‹ Replier ${esc(x.nom||"")}</button><div class="pgrid">${Lf.map(([f,l,t])=>t==="b"?`<label class="pchk"><input type="checkbox" data-pf="${base}.${f}"${x[f]?" checked":""}> ${l}</label>`:t==="n"?`<label class="pl"><span>${l}</span>${pStep(base+"."+f,pQtyShow(p,key,f,x))}</label>`:t==="c"?`<label class="pl"><span>${l}</span>${pSel(base+"."+f,pCalCanon(x[f]),P_CALS,"—")}</label>`:t==="s"?`<label class="pl wide"><span>${l}</span>${pSel(base+"."+f,x[f]||"",Object.values(P_FAMN),"Auto : "+(P_FAMN[pModFam(Object.assign({},x,{fam:""}),key)]||"aucun"))}</label>`:`<label class="pl${f==="nom"||f==="prop"||f==="effet"||f==="fonc"?" wide":""}"><span>${l}</span>${f==="prop"||f==="effet"||f==="fonc"?pTa(base+"."+f,x[f]||""):pIn(base+"."+f,x[f]||"")}</label>`).join("")}</div>${modsEd}<div class="btnrow">${pConfBtn("del:"+base,"Retirer","sm")}</div></div>`;
+      const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur"));const det=key==="mun"?[]:Lf.filter(([f,,t])=>f!=="nom"&&f!=="fam"&&t!=="n"&&t!=="b"&&x[f]);
+      return `<div class="pitem ${key}"><div class="pih${key==="mun"?" mun":""}"><span class="pin2">${esc(x.nom||"—")}</span>${q.map(([f,l])=>`<span class="pq${pQtyShow(p,key,f,x)<=0?" low":""}" title="${l}">${pStep(base+"."+f,pQtyShow(p,key,f,x))}<small>${key==="mun"?(f==="chargeurs"?"charg.":"balles au total"):key==="armes"?(f==="qte"?"":"/ "+pCap(x)+" dans l’arme"):""}</small></span>`).join("")}</div>${pItemLine(key,x).length?`<div class="pchips">${pItemLine(key,x).map(t=>`<span>${esc(t)}</span>`).join("")}</div>`:""}${pModsUI(p,key,x,base)}${det.length?`<details class="pdet"><summary>Détails</summary><dl class="statl">${det.map(([f,l])=>`<dt>${l}</dt><dd>${esc(x[f])}</dd>`).join("")}</dl></details>`:""}</div>`}).join("");
     const bz=S.pBz&&S.pBz.list===key?pBzPanel(key):"";
     h+=`<section class="psec pinvs ${key}"><div class="pst"><span class="psti">${P_LIC[key]||""}</span>${L.t}</div>${rows||`<p class="pnone">Rien pour l’instant.</p>`}${E?`<div class="btnrow"><button class="btn sm" data-pa="add" data-k="${key}">+ Ajouter</button><button class="btn sm${bz?" red":""}" data-pa="bz" data-k="${key}">${bz?"Fermer le Bazar":"+ Depuis le Bazar"}</button></div>${bz}`:""}</section>`;
   });
@@ -679,6 +820,11 @@ function pAction(a){
     case "setmax":{const t=p.pistes[k];t.max=Math.max(1,Math.min(60,+a.dataset.v||1));t.v=Math.min(t.v,t.max);break}
     case "addpot":p.pots.push({n:"",lvl:1});break;
     case "add":p[k].push({});S.pOpen=S.pOpen||{};S.pOpen[p.id+":"+k+"."+(p[k].length-1)]=true;break;
+    case "modinfo":S.pModInfo=S.pModInfo||{};S.pModInfo[k]=!S.pModInfo[k];break;
+    case "modopen":S.pModOpen=S.pModOpen===k?null:k;S.pModCan=null;S.pConf=null;break;
+    case "modadd":{const x=pGet(p,k),key=k.split(".")[0],m=P_MODID[a.dataset.v];if(x&&m&&!pModAvail(x,key,m)){if(m.id==="can"){S.pModCan=k;break}if(!Array.isArray(x.mods))x.mods=[];x.mods.push(pModApply(x,key,m));S.pModOpen=null;toast("Mod posé : "+m.n)}break}
+    case "modcan":{const x=pGet(p,k),m=P_MODID.can,v=(document.getElementById("pmodcal")||{}).value;if(x&&v&&!pModAvail(x,"armes",m)){if(!Array.isArray(x.mods))x.mods=[];x.mods.push(pModApply(x,"armes",m,{cal:v}));S.pModOpen=null;S.pModCan=null;toast("Nouveau calibre : "+v)}break}
+    case "modtxt":{const x=pGet(p,k),t=(document.getElementById("pmodtxt")||{}).value;if(x&&t&&t.trim()&&pModUsed(x)<pModSlots(x,k.split(".")[0])){if(!Array.isArray(x.mods))x.mods=[];x.mods.push(t.trim());S.pModOpen=null}break}
     case "itemopen":S.pOpen=S.pOpen||{};S.pOpen[k]=!S.pOpen[k];break;
     case "bz":S.pBz=S.pBz&&S.pBz.list===k?null:{list:k,q:""};if(S.pBz)S._pFocus="#pbzq";break;
     case "bzadd":{const r=BAZAR[+a.dataset.v];if(r){const o=P_FROMBZ[k](r);Object.keys(o).forEach(f=>{if(typeof o[f]==="string"||o[f]==null)o[f]=dash(o[f])});p[k].push(o);toast("Ajouté : "+r.Nom)}S.pBz=null;break}
@@ -688,6 +834,9 @@ function pAction(a){
     case "conf":{if(S.pConf!==k){S.pConf=k;break}S.pConf=null;
       if(k==="cend"){pSnap(p,"Terminer le combat");p.combat={on:false};S.pRoll=null;window.scrollTo(0,0)}
       else if(k==="delp"){PERSOS=PERSOS.filter(o=>o.id!==p.id);S.pid=null;toast("Personnage supprimé")}
+      else if(k.startsWith("dm:")){S.pModInfo={};const [,path,i]=k.split(":"),x=pGet(p,path),key=path.split(".")[0];if(x&&Array.isArray(x.mods)){const e=x.mods[+i],id=e&&e.m;pModRevert(x,key,e);x.mods.splice(+i,1);
+        /* un mod retiré emporte ceux qui en dépendent (leurs effets sont annulés aussi) */
+        if(id&&!x.mods.some(y=>y&&y.m===id))for(let j=x.mods.length-1;j>=0;j--){const d=P_MODID[x.mods[j]&&x.mods[j].m];if(d&&d.req===id){pModRevert(x,key,x.mods[j]);x.mods.splice(j,1)}}}}
       else if(k.startsWith("del:")){const path=k.slice(4).split("."),i=+path.pop(),arr=pGet(p,path.join("."));if(Array.isArray(arr)){arr.splice(i,1);S.pOpen={}}}
       break}
   }
