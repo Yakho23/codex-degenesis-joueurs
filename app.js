@@ -455,6 +455,8 @@ function pTrack(p,k,l){
 /* Rafale (X) : jusqu’à X balles en 1 action, +1D et +1 dégât par balle ; plusieurs cibles : dés partagés à parts égales,
    un jet par cible, dégâts de rafale divisés (arrondi inférieur), pas plus de cibles que de balles.
    Régularité (nDC) : avec n déclencheurs, nouvelle attaque immédiate à −2D (cumulatif). (Katharsys, propriétés des armes) */
+/* Lacération (Dilacérateur, Katharsys) : avec 2 déclencheurs, le Spitalier peut refermer les lames : +1D de dégâts ; ces 2 DC ne comptent plus dans le calcul des dégâts */
+const pLac=w=>{const m=String(w&&w.prop||"").match(/lac[ée]ration\s*\((\d+)\s*DC/i);return m?+m[1]:0};
 const pRegul=w=>{const m=String(w&&w.prop||"").match(/r[ée]gularit[ée]\s*\((\d+)\s*DC\)/i);return m?+m[1]:0};
 /* distance de tir : normale, longue (−4D) ou extrême (−8D) — armes à distance et grenades seulement */
 const pRngOk=(p,w)=>!!w&&(pRanged(p,w)||pGrenade(w));
@@ -487,18 +489,20 @@ function pChainLine(c,w,p){
   return `<div class="prchain"><b>Attaque ${c.n}</b>${c.res.map((r,i)=>{const ok=r.n>0&&r.succ>=c.diff,dv=ok?pDmgVal(w,pRd(c.rafDmg,i),r.trig,p):null;
     return `<span>${c.res.length>1?`Cible ${i+1} : `:""}${ok?"réussite":r.ones>r.succ?"échec critique":"échec"} · ${r.succ} S · ${r.trig} DC${ok?` · dégâts <b>${dv!=null?dv:esc(String(w&&w.deg||"?"))+(r.trig?" + "+r.trig+" DC":"")}</b>`:""}</span>`}).join("")}</div>`;
 }
-function pDmg(w,rafDmg,trig,p){
-  const d=String(w&&w.deg||"").trim();if(!d)return "";const b=pDmgBase(p,d,w);
-  if(!b)return [esc(d),rafDmg&&rafDmg+" (rafale)",trig&&trig+" DC"].filter(Boolean).join(" + ");
-  const extra=[rafDmg&&rafDmg+" (rafale)",trig&&trig+" DC"].filter(Boolean);
+function pDmg(w,rafDmg,trig,p,ex){
+  const d=String(w&&w.deg||"").trim();if(!d)return "";const b=pDmgBase(p,d,w),exl=ex!=null?ex+" (Lacération)":"";
+  if(!b)return [esc(d),rafDmg&&rafDmg+" (rafale)",trig&&trig+" DC",exl].filter(Boolean).join(" + ");
+  const extra=[rafDmg&&rafDmg+" (rafale)",trig&&trig+" DC",exl].filter(Boolean);
   const first=b.plain?(extra.length?String(b.v):`<b>${b.v}</b>`)+(b.mod?` <small>(mods ${b.mod>0?"+":""}${b.mod})</small>`:""):b.html;
-  return extra.length?`${first} + ${extra.join(" + ")} = <b>${b.v+rafDmg+trig}</b>`:first;
+  return extra.length?`${first} + ${extra.join(" + ")} = <b>${b.v+rafDmg+trig+(ex||0)}</b>`:first;
 }
-function pOneRes(r,dif,kind,w,rafDmg,title,p){
+function pOneRes(r,dif,kind,w,rafDmg,title,p,lac,li){
   const ok=r.n>0&&r.succ>=dif;const verdict=r.n<=0?"Échec automatique":ok?"Réussite"+(r.trig?" · "+qual(r.trig):""):(r.ones>r.succ?"Échec critique":"Échec");
   return `<div class="prres">${title?`<div class="prt">${esc(title)}</div>`:""}<div class="verdict"><span class="big ${ok?"ok":"ko"}">${DG(verdict)}</span><span class="note">${r.n}D · difficulté ${dif}</span></div>
    <div class="tally"><span><b>${r.succ}</b>succès</span><span><b>${r.trig}</b>déclencheurs</span><span><b>${r.ones}</b>× 1</span></div>${diceView(r)}
-   ${ok&&kind==="att"&&w&&w.deg?`<div class="prdmg">Dégâts : ${pDmg(w,rafDmg,r.trig,p)}</div>`:""}</div>`;
+   ${ok&&kind==="att"&&w&&w.deg?(()=>{const lc=pLac(w),can=lc&&r.trig>=lc;
+     if(can&&lac)return `<div class="prdmg">Dégâts : ${pDmg(w,rafDmg,r.trig-lc,p,lac.d)}</div><div class="note">Lacération : lames refermées, ${lc} DC dépensés, 1D = ${lac.d}. Les ${lc} DC ne comptent plus dans les dégâts.</div>`;
+     return `<div class="prdmg">Dégâts : ${pDmg(w,rafDmg,r.trig,p)}</div>`+(can?`<div class="prregul"><div class="note">Lacération (${lc} DC) : refermer les lames pour +1D de dégâts, à la place des ${lc} DC.</div><button class="btn red" data-pa="rlac" data-k="${li||0}">Refermer les lames (+1D)</button></div>`:"")})():""}</div>`;
 }
 function pRollPanel(p,at){
   const R=S.pRoll;if(!R||R.at!==at||R.pid!==p.id)return "";
@@ -518,7 +522,7 @@ function pRollPanel(p,at){
       res=pOneRes(r,1,"sonic",w,0,"Domination · PSY + Domination",p).replace(/ · difficulté 1/,"")+(r.succ>0?`<div class="prson"><div class="prdmg"><b>Défense de la cible</b> : PSY + Foi/Volonté, difficulté <b>${r.succ}</b>.</div><div class="prdmg">Dégâts : 1 + ${t} (DC Technologie) + ${r.trig} (DC Domination) = <b>${tot}</b> point${tot>1?"s":""} ${d[0]}</div></div>`:`<div class="ptrw">Aucun succès en Domination : la cible n’est pas touchée.</div>`)}}
   else if(R.res){
     const n=R.res.length;
-    res=(R.chain&&R.chain.length?`<div class="prchains">${R.chain.map(c=>pChainLine(c,P.w,p)).join("")}</div>`:"")+(R.resInfo?`<div class="prinfo">${esc(R.resInfo)}</div>`:"")+R.res.map((r,i)=>pOneRes(r,R.resDiff,R.kind,P.w,pRd(R.resRafDmg,i),n>1?"Cible "+(i+1):"",p)).join("")+(R.dev?pDevView(R.dev):"");
+    res=(R.chain&&R.chain.length?`<div class="prchains">${R.chain.map(c=>pChainLine(c,P.w,p)).join("")}</div>`:"")+(R.resInfo?`<div class="prinfo">${esc(R.resInfo)}</div>`:"")+R.res.map((r,i)=>pOneRes(r,R.resDiff,R.kind,P.w,pRd(R.resRafDmg,i),n>1?"Cible "+(i+1):"",p,R.lac&&R.lac[i],i)).join("")+(R.dev?pDevView(R.dev):"");
     const rg=P.w?pRegul(P.w):0;
     if(R.kind==="att"&&rg&&R.res.some(r=>r.succ>=R.resDiff&&r.trig>=rg)){
       const can=!P.cap||pLoaded(P.w)>=(R.resRaf||1);
@@ -560,7 +564,7 @@ function pDoRoll(p){
   if(P.cap)P.w.cur=pLoaded(P.w)-(P.raf||1);
   if(gren)P.w.qte=(+P.w.qte||0)-1;
   const res=P.dice.map(n=>rollPool(n));
-  R.res=res;R.resDiff=R.diff;R.resRaf=P.raf;R.resRafDmg=P.balls;
+  R.lac=null;R.res=res;R.resDiff=R.diff;R.resRaf=P.raf;R.resRafDmg=P.balls;
   if(R.kind==="init"&&p.combat&&p.combat.on){const r=res[0];p.combat.init=r.succ;p.combat.act=1+Math.floor(r.trig/2);p.combat.ego=egoSpent;p.combat.egoUsed=false;p.combat.used=0}
   /* grenade (propriété Déviation) : réussite → 1D − DC mètres d’écart ; échec → 2D mètres */
   R.dev=null;
@@ -696,6 +700,7 @@ function pCombatAction(act,a,p){
       Object.assign(R,{sonic:2,res:null,mod:0,ego:0,base:A+T,calc:`PSY ${A} + Domination ${T}`,label:"Attaque sonique · "+(p.armes[R.w].nom||"arme")+" · Domination"});return true}
     case "rgo":if(S.pRoll){S.pRoll.regul=0;S.pRoll.chain=[];pDoRoll(p);S._pShowRes=true}return true;
     case "rregul":if(S.pRoll){S._pShowRes=true;const R=S.pRoll;if(R.res)(R.chain=R.chain||[]).push({n:(R.regul||0)+1,res:R.res,diff:R.resDiff,rafDmg:R.resRafDmg||0});S.pRoll.regul=(S.pRoll.regul||0)+1;S.pRoll.raf=Math.min(S.pRoll.raf,S.pRoll.resRaf||0);pDoRoll(p)}return true;
+    case "rlac":{const R=S.pRoll;if(!R||!R.res)return true;const i=+k||0,w=p.armes[R.w],r=R.res[i];if(!w||!r||!pLac(w)||r.trig<pLac(w))return true;(R.lac=R.lac||{})[i]={d:1+rnd(6)};pushHist((w.nom||"Arme")+" · Lacération",R.lac[i].d+" dégât"+(R.lac[i].d>1?"s":"")+" (1D)");return true}
     case "rrng":{const R=S.pRoll;if(!R)return true;R.rng=+a.dataset.v||0;R.res=null;R.regul=0;return true}
     case "rraf":{const R=S.pRoll;if(!R)return true;R.raf=+a.dataset.v||0;R.cib=Math.min(R.cib||1,R.raf||1);R.res=null;R.regul=0;return true}
     case "reload":{const w=p.armes[+k],cap=pCap(w),ld=pLoaded(w);if(pAgentW(w)&&cap)return pAgentReload(p,w,+k);if(ld>=cap)return true;
