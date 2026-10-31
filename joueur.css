@@ -410,3 +410,5 @@ details.card.ppotc{border-left:3px solid var(--red)}
 .pcard{gap:10px}
 .pcacts{flex:none;display:flex;flex-direction:column;gap:8px;align-items:stretch}
 .pcacts .pcdel{align-self:stretch}
+.pagent{margin-top:6px}.pagent b{color:#fff;font-weight:700}
+.pagsel{width:100%;margin-top:8px}
