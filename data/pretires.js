@@ -831,5 +831,143 @@ window.PRETIRES = [
   "mun": [],
   "artef": [],
   "portrait": "assets/pretires/viktorkreuzwald.jpg"
+ },
+ {
+  "nom": "Luz",
+  "age": "17",
+  "rang": "3 : Mécano",
+  "xp": "",
+  "sexe": "Féminin",
+  "taille": "1 m 70",
+  "poids": "60 kg",
+  "lc": "",
+  "culture": "Borca",
+  "concept": "Le Soigneur",
+  "culte": "Ferrailleurs",
+  "her": [
+   "Exilé",
+   "",
+   ""
+  ],
+  "a": {
+   "PHY": 3,
+   "AGI": 4,
+   "CHA": 1,
+   "INT": 3,
+   "PSY": 2,
+   "INS": 3
+  },
+  "k": {
+   "Athlétisme": 2,
+   "Force": 1,
+   "Résistance": 3,
+   "Vigueur": 2,
+   "Armes à projectiles": 2,
+   "Artisanat": 3,
+   "Dextérité": 1,
+   "Furtivité": 2,
+   "Concentration": 2,
+   "Conn. des artefacts": 2,
+   "Médecine": 1,
+   "Technologie": 3,
+   "Volonté": 2,
+   "Empathie": 1,
+   "Orientation": 2,
+   "Perception": 2,
+   "Survie": 3
+  },
+  "o": {},
+  "pots": [
+   {
+    "n": "Dur à cuire",
+    "lvl": 1
+   }
+  ],
+  "pistes": {
+   "ego": {
+    "max": 10,
+    "v": 0
+   },
+   "spo": {
+    "max": 8,
+    "v": 0,
+    "perm": 0
+   },
+   "bles": {
+    "max": 12,
+    "v": 0
+   },
+   "trau": {
+    "max": 5,
+    "v": 0
+   }
+  },
+  "armes": [
+   {
+    "nom": "Carabine",
+    "comp": "AGI+ARMES À PROJECTILES",
+    "man": "–",
+    "portee": "30 /120",
+    "deg": "6",
+    "charg": "4",
+    "cal": ".357",
+    "prop": "",
+    "enc": "2",
+    "tech": "IV",
+    "empl": "2",
+    "cat": "Fusils",
+    "cur": 4
+   },
+   {
+    "nom": "Merveille",
+    "comp": "AGI+ARMES À PROJECTILES",
+    "man": "–",
+    "portee": "10 /40",
+    "deg": "8",
+    "charg": "1",
+    "cal": "Balle en plomb",
+    "prop": "Charg. par gueule",
+    "enc": "2",
+    "tech": "III",
+    "empl": "6",
+    "cat": "Fusils",
+    "cur": 1
+   }
+  ],
+  "armures": [],
+  "equip": [
+   {
+    "nom": "Corde 10m",
+    "qte": 1,
+    "enc": "",
+    "effet": "Souvent nécessaire pour escalader",
+    "combat": false
+   },
+   {
+    "nom": "Boussole",
+    "qte": 1,
+    "enc": "",
+    "effet": "INS+Orientation : +1D",
+    "combat": false
+   },
+   {
+    "nom": "Périscope",
+    "qte": 1,
+    "enc": "1",
+    "effet": "Terrain difficile : AGI+Furtivité : +2D",
+    "combat": false
+   },
+   {
+    "nom": "Trousse à outils",
+    "qte": 1,
+    "enc": "2",
+    "effet": "Améliorable (1-3). AGI+Artisanat et AGI+Dextérité : +1D x niveau (niveau 1)",
+    "combat": false
+   }
+  ],
+  "mun": [],
+  "artef": [],
+  "notes": "Mécano : lorsqu’ils démantèlent des artefacts, ils obtiennent 50 % de matériaux bruts en plus.",
+  "portrait": "assets/pretires/luz.jpg"
  }
 ];
