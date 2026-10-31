@@ -514,22 +514,21 @@ const pKitUse=p=>S.pNoKit?null:pKit(p).find(pKitOk)||null;
 const IC_KIT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12.5" rx="2"/><path d="M9 7.5V5.5a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0115 5.5v2M12 11v6M9 14h6"/></svg>';
 const IC_HEAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0112 7.8 4.2 4.2 0 0119.5 10.5c0 5.4-7.5 10-7.5 10z"/><path d="M12 10.5v5M9.5 13h5"/></svg>';
 function pSoinBlock(p){
-  const B=pBand(p),K=pKit(p),kuse=pKitUse(p),bl=p.pistes.bles.v,open=S.pRoll&&S.pRoll.at==="soin"&&S.pRoll.pid===p.id;
+  const B=pBand(p),K=pKit(p),kuse=pKitUse(p),open=S.pRoll&&S.pRoll.at==="soin"&&S.pRoll.pid===p.id;
   const kit=K.length?`<div class="psoin pkit${K.some(pKitOk)?"":" low"}"><span class="pkic" title="Trousse de soins">${IC_KIT}</span><div class="pkb"><span class="pin2">${esc(K[0][0].nom||"Trousse")}</span><span class="pil">+2D sur INT+Médecine · doses restantes</span></div><span class="pq${pKitDoses(K[0][0])<=0?" low":""}"><span class="pstep"><button data-pa="kitd" data-k="${K[0][1]}" data-d="-1" aria-label="Moins">−</button><output>${pKitDoses(K[0][0])}/${pKitMax(K[0][0])}</output><button data-pa="kitd" data-k="${K[0][1]}" data-d="1" aria-label="Plus">+</button></span></span></div>
    <button class="chip pkit2" data-pa="kittog" aria-pressed="${!S.pNoKit}"${K.some(pKitOk)?"":" disabled"}>${IC_KIT}Utiliser la trousse dans le jet${K.some(pKitOk)&&!S.pNoKit?" (+2D)":""}</button>`:"";
-  const band=B.map(([x,i])=>`<div class="psoin"><span class="pkic">${IC_HEAL}</span><div class="pkb"><span class="pin2">${esc(x.nom||"Bandages")}</span><span class="pil">Juste après la blessure : guérit 1 Blessure Superficielle</span></div><span class="pq${(+x.qte||0)<=0?" low":""}">${pStep("equip."+i+".qte",+x.qte||0)}</span><button class="btn sm" data-pa="bandage" data-k="${i}"${(+x.qte||0)<=0||bl<=0?" disabled":""}>Appliquer</button></div>`).join("");
+  const bq=B.reduce((n,[x])=>n+Math.max(0,+x.qte||0),0);
+  const band=B.length?B.map(([x,i])=>`<div class="psoin"><span class="pkic">${IC_HEAL}</span><div class="pkb"><span class="pin2">${esc(x.nom||"Bandages")}</span><span class="pil">Appliqué juste après la blessure : +1 Blessure Superficielle soignée</span></div><span class="pq${(+x.qte||0)<=0?" low":""}">${pStep("equip."+i+".qte",+x.qte||0)}</span></div>`).join("")+`<button class="chip pkit2" data-pa="bandtog" aria-pressed="${!!S.pBandOn&&bq>0}"${bq>0?"":" disabled"}>${IC_HEAL}Appliquer un bandage (s’ajoute au résultat)</button>`:"";
   return `<section class="psec psoins"><div class="pst">Soins${K.some(pKitOk)?`<span class="pkib" title="Trousse de soins équipée">${IC_KIT}</span>`:""}</div>
    ${kit}${band}
-   <div class="pil">Blessures superficielles : ${bl}/${p.pistes.bles.max}</div>
-   <div class="btnrow"><button class="btn red pib" data-pa="soin"${bl<=0||open?" disabled":""}>${IC_HEAL}Soigner</button></div>
-   <div class="pil">Remise sur pied : INT+Médecine (2), guérit 1 + DC Blessures Superficielles. Juste après un combat, une seule fois. Les traumatismes demandent une installation (hors de ce bloc).</div>
-   ${p.soinFait&&!open?`<div class="ptrw">Soin déjà tenté depuis le dernier combat.</div>`:""}
+   <div class="btnrow"><button class="btn red pib" data-pa="soin"${open?" disabled":""}>${IC_HEAL}Soigner</button></div>
+   <div class="pil">Remise sur pied : INT+Médecine (2), guérit 1 + DC Blessures Superficielles chez le patient (indicatif, ne modifie pas ta fiche). Juste après un combat, une seule fois. Les traumatismes demandent une installation (hors de ce bloc).</div>
    ${pRollPanel(p,"soin")}</section>`}
 function pSoinPanel(p,R){
   const P=pPlan(p,R),tm=pTrauMalus(p),recap=[R.calc,tm?`Traumatismes −${tm}D`:""].filter(Boolean).join(" · ");
   let res="";
   if(R.done&&R.res){const r=R.res[0];
-    res=pOneRes(r,R.resDiff,"sk",null,0,"",p)+(R.heal?`<div class="prdmg">Guérison : 1 + ${r.trig} DC = <b>${R.heal.n}</b> Blessure${R.heal.n>1?"s":""} Superficielle${R.heal.n>1?"s":""}${R.heal.real<R.heal.n?` (${R.heal.real} effective${R.heal.real>1?"s":""})`:""}.</div>`:`<div class="ptrw">Échec : aucune blessure soignée.</div>`)+(R.kit>=0?`<div class="note">Une dose de trousse utilisée.</div>`:"")}
+    res=pOneRes(r,R.resDiff,"sk",null,0,"",p)+`<div class="prdmg">Guérison : ${R.heal.roll?`1 + ${r.trig} DC = ${R.heal.roll}`:"jet raté : 0"}${R.band?" + 1 (bandage)":""} = <b>${R.heal.n}</b> Blessure${R.heal.n>1?"s":""} Superficielle${R.heal.n>1?"s":""} soignée${R.heal.n>1?"s":""}.</div><div class="note">À titre indicatif : à reporter sur le patient.</div>`+(R.kit>=0?`<div class="note">Une dose de trousse utilisée.</div>`:"")}
   return `<div class="proll"><div class="prh"><span>${esc(R.label)}</span><button class="prx" data-pa="rollx" aria-label="Fermer">×</button></div>
    <div class="prcalc">${esc(recap)}</div>
    ${R.done?"":`<div class="prrow"><span>Modificateur</span>${pStep2("rmod",R.mod>0?"+"+R.mod:R.mod)}</div><button class="roll" data-pa="rgo">LANCER ${P.pool}D</button>`}${res}</div>`}
@@ -603,11 +602,12 @@ function pDoRoll(p){
   R.resInfo=R.kind==="att"?[P.cap?`${P.raf||1} balle${(P.raf||1)>1?"s":""} tirée${(P.raf||1)>1?"s":""}`:"",P.raf&&P.cib>1?`rafale de ${P.raf} sur ${P.cib} cibles : ${P.balls.map((b,i)=>`cible ${i+1} ${P.dice[i]}D, ${b} balle${b>1?"s":""} (+${b} dégât${b>1?"s":""})`).join(" · ")}`:P.raf?`rafale de ${P.raf} : +${P.raf}D et +${P.raf} dégâts`:"",R.regul?`Régularité −${2*R.regul}D`:""].filter(Boolean).join(" · "):"";
   if(!R.regul)R.ego=0;
   if(P.cap&&R.raf>pLoaded(P.w)){const m=Math.min(P.rx,pLoaded(P.w));R.raf=m<2?0:m}
-  if(R.soin){const r=res[0],ok=r.n>0&&r.succ>=R.resDiff,kx=R.kit>=0?p.equip[R.kit]:null;
+  if(R.soin){const r=res[0],ok=r.n>0&&r.succ>=R.resDiff,kx=R.kit>=0?p.equip[R.kit]:null,bx=S.pBandOn?pBand(p).find(([x])=>(+x.qte||0)>0):null;
     if(kx)kx.doses=Math.max(0,pKitDoses(kx)-1);
-    R.done=true;R.heal=null;p.soinFait=true;
-    if(ok){const n=1+r.trig,t=p.pistes.bles,av=t.v;t.v=Math.max(0,av-n);R.heal={n,real:av-t.v}}
-    pushHist(`Soins · Médecine ${r.n}D (diff. ${R.resDiff})`,`${r.succ} S · ${r.trig} DC`+(ok?` · −${R.heal.real} blessure${R.heal.real>1?"s":""} superficielle${R.heal.real>1?"s":""}`:" · échec"));
+    if(bx)bx[0].qte=(+bx[0].qte||0)-1;
+    S.pBandOn=false;R.done=true;R.band=!!bx;
+    const n=(ok?1+r.trig:0)+(bx?1:0);R.heal={n,roll:ok?1+r.trig:0};
+    pushHist(`Soins · Médecine ${r.n}D (diff. ${R.resDiff})`,`${r.succ} S · ${r.trig} DC`+(ok?"":" · échec")+(bx?" · bandage":"")+` · ${n} blessure${n>1?"s":""} superficielle${n>1?"s":""} soignée${n>1?"s":""}`);
     return}
   if(R.sonic){const r=res[0],w=P.w,d=pSonicDeg(w);
     if(R.sonic===1){R.tech={succ:r.succ,trig:r.trig};pushHist(`${w.nom||"Arme sonique"} · réglage Technologie ${r.n}D (diff. 1)`,`${r.succ} S · ${r.trig} DC${r.succ>=1?" · réglé":" · raté"}`)}
@@ -722,10 +722,10 @@ function pCombatAction(act,a,p){
       pOpenRoll(p,"soin",{kind:"sk",soin:1,kit:ku?ku[1]:-1,label:"Soins · remise sur pied",calc:`Intelligence ${A} + Médecine ${K}`+(ku?" + trousse 2D":""),base:A+K+(ku?2:0),diff:2});return true}
     case "kittog":S.pNoKit=!S.pNoKit;return true;
     case "kitd":{const x=p.equip[+k];if(!x)return true;const d=+a.dataset.d,n=Math.max(0,Math.min(pKitMax(x),pKitDoses(x)+d));if(n===pKitDoses(x))return true;pSnap(p,"Doses de trousse "+(d>0?"+1":"−1"));x.doses=n;return true}
-    case "bandage":{const x=p.equip[+k],t=p.pistes.bles;if(!x||(+x.qte||0)<=0||t.v<=0)return true;pSnap(p,"Bandage appliqué");x.qte=(+x.qte||0)-1;t.v--;toast("Bandage appliqué : −1 blessure superficielle · reste "+x.qte);return true}
+    case "bandtog":S.pBandOn=!S.pBandOn;return true;
     case "armor":{const x=p.armures[+k];if(x){pSnap(p,(x.porte===false?"Porter ":"Ranger ")+(x.nom||"armure"));x.porte=x.porte===false}return true}
     case "egomax":pSnap(p,"Ego au maximum");p.pistes.ego.v=0;return true;
-    case "cstart":pSnap(p,"Commencer le combat");p.combat={on:true,round:1,init:null,act:null,ego:0};p.soinFait=false;pOpenRoll(p,"init",pInitOpts(p));window.scrollTo(0,0);return true;
+    case "cstart":pSnap(p,"Commencer le combat");p.combat={on:true,round:1,init:null,act:null,ego:0};pOpenRoll(p,"init",pInitOpts(p));window.scrollTo(0,0);return true;
     case "cnext":{const c=p.combat;if(!c||!c.on)return true;pSnap(p,"Round suivant");c.round++;c.init=null;c.act=null;c.ego=0;c.used=0;S.pOther=false;pOpenRoll(p,"init",pInitOpts(p));window.scrollTo(0,0);return true}
     case "attack":{const w=p.armes[+k];
       if(pSonic(w)){const A=+p.a.INT||0,T=+p.k.Technologie||0;pOpenRoll(p,"w:"+k,{kind:"sonic",sonic:1,w:+k,label:"Attaque sonique · "+(w.nom||"arme")+" · réglage",calc:`INT ${A} + Technologie ${T}`,base:A+T,diff:1});return true}
