@@ -451,3 +451,17 @@ details.card.ppotc{border-left:3px solid var(--red)}
 .pcmb .psec:has(.ptrk){align-items:start}
 .pcmb .ptrk.ego{order:1}.pcmb .ptrk.bles{order:2}.pcmb .ptrk.spo{order:3}.pcmb .ptrk.trau{order:4}
 .pcmb .psec:has(.ptrk)>.pst{order:0}
+/* Condition : titre à gauche, valeur à droite sur la même ligne, tuiles de même hauteur */
+.pcmb .psec:has(.ptrk){align-items:stretch}
+.pcmb .ptrh{flex-wrap:nowrap!important;align-items:center;gap:8px!important}
+.pcmb .ptri{width:30px;height:30px;flex:none}
+.pcmb .ptrh .ptrl{flex:1 1 auto!important;min-width:0;font-size:13px!important;line-height:1.1;overflow-wrap:anywhere}
+.pcmb .ptrh .ptrv{margin-left:auto;flex:none;font-size:24px!important;white-space:nowrap;text-align:right}
+.pcmb .ptrh .ptrv small{font-size:14px}
+.pcmb .ptrk.spo .ptrv small.pex{white-space:normal}
+@media (max-width:430px){.pcmb .ptri{display:none}}
+.pcmb .tbx:not(.ammo){display:grid;grid-template-columns:repeat(auto-fill,minmax(6px,10px));gap:2px;justify-content:start}
+.pcmb .tbx:not(.ammo) i{width:auto;height:auto;aspect-ratio:1}
+.pcmb .ppl{font-size:13px}
+@media (max-width:340px){.pcmb .ptrh{gap:6px!important}.pcmb .ptrh .ptrl{font-size:11.5px!important;letter-spacing:.02em!important}.pcmb .ptrh .ptrv{font-size:20px!important}.pcmb .ptrh .ptrv small{font-size:12px}}
+@media (max-width:340px){.pcmb .tbx:not(.ammo){grid-template-columns:repeat(auto-fill,minmax(6px,8px))}}
