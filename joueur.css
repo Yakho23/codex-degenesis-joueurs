@@ -468,7 +468,17 @@ details.card.ppotc{border-left:3px solid var(--red)}
 .nfbar{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
 .nfb{min-width:44px;height:40px;padding:0 10px;border:1px solid var(--line2);background:var(--panel2);color:var(--fg);font-family:var(--f-ui);font-size:17px;display:grid;place-items:center;-webkit-tap-highlight-color:transparent}
 .nfb:active{background:var(--red-d)}
-.nta{min-height:220px;resize:vertical;line-height:1.5;font-size:16px;width:100%;box-sizing:border-box}
+.nta{min-height:220px;line-height:1.5;font-size:16px;width:100%;box-sizing:border-box;overflow-wrap:anywhere;overflow-y:auto;outline:none;white-space:normal}
+.nta:empty:before{content:attr(data-ph);color:var(--dim);pointer-events:none}
+.nta:focus{border-color:var(--red)}
+.nta div,.nta p{margin:0 0 4px}
+.nta h4,.nbody h4{margin:6px 0 4px;font-family:var(--f-ui);font-size:16px;letter-spacing:.05em;text-transform:uppercase;font-weight:600}
+.nta ul,.nbody ul{margin:2px 0 6px;padding-left:20px}
+.nta blockquote,.nbody blockquote{margin:4px 0;padding:2px 0 2px 10px;border-left:2px solid var(--dim);color:var(--mute)}
+.ncols{display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.ncb{width:34px;height:34px;border:2px solid var(--line2);background:var(--c);-webkit-tap-highlight-color:transparent;padding:0;display:grid;place-items:center;color:var(--fg);font-family:var(--f-ui);font-size:15px}
+.ncb.ncn{background:var(--panel2)}
+.ncb:active{outline:2px solid var(--fg)}
 .pnote .btnrow{margin-top:10px}
 .pnote .btn[disabled]{opacity:.4;pointer-events:none}
 .nday{margin:16px 0 8px;font-family:var(--f-ui);font-size:13.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--red)}
@@ -479,7 +489,7 @@ details.card.ppotc{border-left:3px solid var(--red)}
 .nh{font-family:var(--f-ui);font-size:13.5px;letter-spacing:.06em;color:var(--dim)}
 .nbt{display:flex;gap:6px}
 .nbody{font-size:16px;line-height:1.5;overflow-wrap:anywhere}
-.nbody p{margin:0 0 4px}.nbody h4{margin:6px 0 4px;font-family:var(--f-ui);font-size:16px;letter-spacing:.05em;text-transform:uppercase;color:var(--fg)}
+.nbody div{margin:0 0 4px}.nbody h4{margin:6px 0 4px;font-family:var(--f-ui);font-size:16px;letter-spacing:.05em;text-transform:uppercase;color:var(--fg)}
 .nbody ul{margin:2px 0 6px;padding-left:20px}.nbody blockquote{margin:4px 0;padding:2px 0 2px 10px;border-left:2px solid var(--dim);color:var(--mute)}
 .nbody .nsp{height:6px}
 .pst small{font-size:12px;color:var(--dim);margin-left:6px}

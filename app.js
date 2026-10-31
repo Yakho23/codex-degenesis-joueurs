@@ -178,13 +178,15 @@ function pBlank(){return {id:uid(),v:1,cree:Date.now(),maj:Date.now(),arch:false
   nom:"",age:"",rang:"",xp:"",sexe:"",taille:"",poids:"",lc:"",culture:"",concept:"",culte:"",her:["","",""],
   a:{},priv:{},k:{},o:{},pots:[],stats:{init:"",defm:"",armure:""},modif:"",compl:"",
   pistes:{ego:{max:24,v:0},spo:{max:24,v:0},bles:{max:24,v:0},trau:{max:12,v:0}},
-  armes:[],armures:[],mun:[],equip:[],artef:[],mods:"",notes:"",journal:[],brouillon:""}}
+  armes:[],armures:[],mun:[],equip:[],artef:[],mods:"",notes:"",journal:[],brouillonH:""}}
 function pNorm(x){const b=pBlank(),p=Object.assign(b,x||{});
   ["a","priv","k","o","stats","pistes"].forEach(k=>{if(typeof p[k]!=="object"||!p[k]||Array.isArray(p[k]))p[k]=b[k]});
   ["her","pots","armes","armures","mun","equip","artef","etats"].forEach(k=>{if(!Array.isArray(p[k]))p[k]=[]});
   while(p.her.length<3)p.her.push("");
   if(!Array.isArray(p.journal))p.journal=[];
-  if(typeof p.brouillon!=="string")p.brouillon="";
+  if(typeof p.brouillonH!=="string")p.brouillonH="";
+  if(typeof p.brouillon==="string"&&p.brouillon.trim()&&!p.brouillonH){p.brouillonH=nmd(p.brouillon)}
+  delete p.brouillon;
   /* ancien champ « Notes » libre : devient la première note du journal */
   if(typeof p.notes==="string"&&p.notes.trim()){p.journal.push({id:uid(),t:+p.maj||+p.cree||Date.now(),tx:p.notes.trim()});p.notes=""}
   p.armes.forEach(w=>{if(w&&/d[ée]viation/i.test(String(w.prop||""))&&w.qte==null)w.qte=1}); /* grenades déjà présentes : 1 en stock */
@@ -890,29 +892,51 @@ function nmd(t){const il=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace
     if(m=l.match(/^#{1,3}\s+(.*)$/))h+=`<h4>${il(m[1])}</h4>`;
     else if(m=l.match(/^>\s?(.*)$/))h+=`<blockquote>${il(m[1])}</blockquote>`;
     else if(!l.trim())h+='<div class="nsp"></div>';
-    else h+=`<p>${il(l)}</p>`});
+    else h+=`<div>${il(l)}</div>`});
   close();return h}
 const nDay=t=>new Date(t).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
 const nHour=t=>new Date(t).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+const N_COL=[["#EC1E26","Rouge"],["#D9A441","Ambre"],["#5FAE6B","Vert"],["#5B9BD5","Bleu"],["#B07CD8","Violet"],["#8E887E","Gris"]];
+const N_DEF="#f2efe8";
 const N_TOOLS=[["b","<b>G</b>","Gras"],["i","<i>I</i>","Italique"],["s","<s>S</s>","Barré"],["h","T","Titre"],["l","•","Liste"],["q","❝","Citation"]];
+/* HTML des notes : on ne garde qu’un petit jeu de balises et les couleurs de la palette */
+function nsan(html){const doc=new DOMParser().parseFromString("<body>"+String(html||"")+"</body>","text/html"),ok={B:"b",STRONG:"b",I:"i",EM:"i",S:"s",STRIKE:"s",DEL:"s",H1:"h4",H2:"h4",H3:"h4",H4:"h4",UL:"ul",OL:"ul",LI:"li",BLOCKQUOTE:"blockquote",P:"div",DIV:"div",BR:"br"},cols=N_COL.map(c=>c[0].toLowerCase());
+  const col=n=>{let c=(n.getAttribute&&n.getAttribute("color"))||(n.style&&n.style.color)||"";c=String(c).trim().toLowerCase();
+    const m=c.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);if(m)c="#"+[m[1],m[2],m[3]].map(x=>(+x).toString(16).padStart(2,"0")).join("");return cols.includes(c)?c:""};
+  const walk=n=>{let h="";n.childNodes.forEach(c=>{
+    if(c.nodeType===3){h+=esc(c.nodeValue);return}
+    if(c.nodeType!==1)return;
+    const inner=walk(c),t=c.tagName;
+    if(t==="FONT"||t==="SPAN"){const k=col(c);h+=k?`<span style="color:${k}">${inner}</span>`:inner;return}
+    const tag=ok[t];if(!tag){h+=inner;return}
+    if(tag==="br"){h+="<br>";return}
+    const k=col(c);h+=k?`<${tag}><span style="color:${k}">${inner}</span></${tag}>`:`<${tag}>${inner}</${tag}>`});return h};
+  return walk(doc.body)}
+const nTxt=h=>{const d=document.createElement("div");d.innerHTML=nsan(h);return d.textContent.replace(/ /g," ").trim()};
+const nHtml=n=>n.html?nsan(n.html):nmd(n.tx);
 function pNotes(p){
-  const ed=S.pNoteEd&&p.journal.find(n=>n.id===S.pNoteEd),txt=ed?(S.pNoteEdTxt??ed.tx):p.brouillon;
-  const bar=`<div class="nfbar" role="toolbar" aria-label="Mise en forme">${N_TOOLS.map(([k,l,t])=>`<button type="button" class="nfb" data-pa="nfmt" data-v="${k}" aria-label="${t}" title="${t}">${l}</button>`).join("")}</div>`;
+  const ed=S.pNoteEd&&p.journal.find(n=>n.id===S.pNoteEd),html=ed?(S.pNoteEdTxt??nHtml(ed)):p.brouillonH,has=!!nTxt(html);
+  const bar=`<div class="nfbar" role="toolbar" aria-label="Mise en forme">${N_TOOLS.map(([k,l,t])=>`<button type="button" class="nfb" data-pa="nfmt" data-v="${k}" aria-label="${t}" title="${t}">${l}</button>`).join("")}</div>
+   <div class="ncols" role="toolbar" aria-label="Couleur du texte">${N_COL.map(([c,n])=>`<button type="button" class="ncb" data-pa="ncol" data-v="${c}" aria-label="${n}" title="${n}" style="--c:${c}"></button>`).join("")}<button type="button" class="ncb ncn" data-pa="ncol" data-v="" aria-label="Couleur normale" title="Couleur normale">A</button></div>`;
   const editor=`<section class="psec pnote"><div class="pst">${ed?"Modifier la note":"Nouvelle note"}</div>${bar}
-    <textarea class="pin nta" id="pnta" data-pnote="1" placeholder="Indices, PNJ rencontrés, objectifs…" rows="9">${esc(txt)}</textarea>
-    <div class="btnrow">${ed?`<button class="btn red" data-pa="nsave" ${txt.trim()?"":"disabled"} id="pnbtn">Enregistrer</button><button class="btn" data-pa="ncancel">Annuler</button>`:`<button class="btn red" data-pa="nadd" ${txt.trim()?"":"disabled"} id="pnbtn">Ajouter la note</button>`}</div>
+    <div class="pin nta" id="pnta" data-pnote="1" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Texte de la note" data-ph="Indices, PNJ rencontrés, objectifs…">${html}</div>
+    <div class="btnrow">${ed?`<button class="btn red" data-pa="nsave" ${has?"":"disabled"} id="pnbtn">Enregistrer</button><button class="btn" data-pa="ncancel">Annuler</button>`:`<button class="btn red" data-pa="nadd" ${has?"":"disabled"} id="pnbtn">Ajouter la note</button>`}</div>
     <p class="note">${ed?"La date d’origine est conservée.":"La note est datée au moment où tu l’ajoutes."} Tes notes restent sur ce téléphone : elles ne seront jamais envoyées au MJ.</p></section>`;
   const L=p.journal.slice().sort((x,y)=>y.t-x.t);let day="",hist="";
   L.forEach(n=>{const d=nDay(n.t);if(d!==day){day=d;hist+=`<div class="nday">${esc(d)}</div>`}
-    hist+=`<article class="nent${S.pNoteEd===n.id?" on":""}"><div class="nhead"><span class="nh">${nHour(n.t)}${n.mod?" · modifiée":""}</span><span class="nbt"><button class="btn sm" data-pa="nedit" data-k="${n.id}">Modifier</button>${pConfBtn("deln:"+n.id,"Supprimer","sm")}</span></div><div class="nbody">${nmd(n.tx)}</div></article>`});
+    hist+=`<article class="nent${S.pNoteEd===n.id?" on":""}"><div class="nhead"><span class="nh">${nHour(n.t)}${n.mod?" · modifiée":""}</span><span class="nbt"><button class="btn sm" data-pa="nedit" data-k="${n.id}">Modifier</button>${pConfBtn("deln:"+n.id,"Supprimer","sm")}</span></div><div class="nbody">${nHtml(n)}</div></article>`});
   return editor+`<section class="psec"><div class="pst">Historique${L.length?` <small>${L.length}</small>`:""}</div>${hist||'<p class="note">Aucune note pour l’instant.</p>'}</section>`}
-function pNoteFmt(v){const el=app.querySelector("#pnta");if(!el)return;const s=el.selectionStart,e=el.selectionEnd,val=el.value,sel=val.slice(s,e);let out,a,b;
-  const wrap=(m)=>{out=val.slice(0,s)+m+(sel||"texte")+m+val.slice(e);a=s+m.length;b=a+(sel||"texte").length};
-  const line=(pre)=>{const ls=val.lastIndexOf("\n",s-1)+1;let le=val.indexOf("\n",e);if(le<0)le=val.length;const blk=val.slice(ls,le).split("\n").map(x=>x.startsWith(pre)?x.slice(pre.length):pre+x).join("\n");out=val.slice(0,ls)+blk+val.slice(le);a=ls;b=ls+blk.length};
-  ({b:()=>wrap("**"),i:()=>wrap("*"),s:()=>wrap("~~"),h:()=>line("# "),l:()=>line("- "),q:()=>line("> ")})[v]();
-  el.value=out;el.focus();try{el.setSelectionRange(a,b)}catch(x){}pNoteInput(el)}
-function pNoteInput(el){const p=pCur();if(!p)return;if(S.pNoteEd)S.pNoteEdTxt=el.value;else{p.brouillon=el.value;pSave()}
-  el.style.height="auto";el.style.height=Math.max(220,el.scrollHeight+2)+"px";const b=app.querySelector("#pnbtn");if(b)b.disabled=!el.value.trim()}
+function pNoteFmt(v,c){const el=app.querySelector("#pnta");if(!el)return;el.focus();try{document.execCommand("defaultParagraphSeparator",false,"div")}catch(x){}
+  const cur=()=>{const s=getSelection();let n=s&&s.anchorNode;while(n&&n!==el){if(n.nodeType===1&&/^(H4|BLOCKQUOTE)$/.test(n.tagName))return n.tagName;n=n.parentNode}return ""};
+  try{document.execCommand("styleWithCSS",false,false);
+  if(v==="col")document.execCommand("foreColor",false,c||N_DEF);
+  else if(v==="b")document.execCommand("bold");else if(v==="i")document.execCommand("italic");else if(v==="s")document.execCommand("strikeThrough");
+  else if(v==="l")document.execCommand("insertUnorderedList");
+  else if(v==="h")document.execCommand("formatBlock",false,cur()==="H4"?"div":"h4");
+  else if(v==="q")document.execCommand("formatBlock",false,cur()==="BLOCKQUOTE"?"div":"blockquote")}catch(x){}
+  pNoteInput(el)}
+function pNoteInput(el){const p=pCur();if(!p)return;const h=nsan(el.innerHTML);if(S.pNoteEd)S.pNoteEdTxt=h;else{p.brouillonH=h;pSave()}
+  const b=app.querySelector("#pnbtn");if(b)b.disabled=!nTxt(h)}
 function pExport(p){
   const data=JSON.stringify({format:"codexj-perso",v:1,perso:p},null,1);
   const name=(norm(p.nom||"personnage").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"personnage")+".json";
@@ -928,16 +952,17 @@ function pImport(file){
 function pAction(a){
   const act=a.dataset.pa,k=a.dataset.k,p=pCur();
   if(act==="nfmt"){pNoteFmt(a.dataset.v);return}
+  if(act==="ncol"){pNoteFmt("col",a.dataset.v);return}
   if(act!=="conf")S.pConf=null;
   if(p&&pCombatAction(act,a,p)){p.maj=Date.now();pSave(true);render();return}
   switch(act){
     case "new":{const n=pBlank();PERSOS.push(n);pSave(true);S.pid=n.id;S.pTab="fiche";S.pEdit=true;S.pPort=true;S.pPortC="";window.scrollTo(0,0);break}
     case "open":S.pNoteEd=null;S.pid=k;S.pTab="combat";S.pRoll=null;S.pEdit=false;S.pPort=false;S.pBz=null;window.scrollTo(0,0);break;
     case "list":S.pid=null;S.pEdit=false;S.pPort=false;S.pBz=null;window.scrollTo(0,0);break;
-    case "nadd":{const t=(p.brouillon||"").trim();if(!t)break;p.journal.push({id:uid(),t:Date.now(),tx:t});p.brouillon="";toast("Note ajoutée");break}
-    case "nedit":{const n=p.journal.find(x=>x.id===k);if(n){S.pNoteEd=k;S.pNoteEdTxt=n.tx;window.scrollTo(0,0)}break}
+    case "nadd":{const h=nsan(p.brouillonH);if(!nTxt(h))break;p.journal.push({id:uid(),t:Date.now(),html:h,tx:nTxt(h)});p.brouillonH="";toast("Note ajoutée");break}
+    case "nedit":{const n=p.journal.find(x=>x.id===k);if(n){S.pNoteEd=k;S.pNoteEdTxt=nHtml(n);window.scrollTo(0,0)}break}
     case "ncancel":S.pNoteEd=null;S.pNoteEdTxt=null;break
-    case "nsave":{const n=p.journal.find(x=>x.id===S.pNoteEd),t=(S.pNoteEdTxt||"").trim();if(n&&t){if(t!==n.tx)n.mod=true;n.tx=t;toast("Note modifiée")}S.pNoteEd=null;S.pNoteEdTxt=null;break}
+    case "nsave":{const n=p.journal.find(x=>x.id===S.pNoteEd),h=nsan(S.pNoteEdTxt);if(n&&nTxt(h)){if(h!==nHtml(n))n.mod=true;n.html=h;n.tx=nTxt(h);toast("Note modifiée")}S.pNoteEd=null;S.pNoteEdTxt=null;break}
     case "port":S.pPort=!S.pPort;S.pPortC="";break;
     case "portclose":S.pPort=false;break;
     case "portset":{const v=a.dataset.v||"";if(v&&!/^assets\/portraits\/[a-z]+\/\d+\.jpg$/.test(v))break;p.portrait=v;p.maj=Date.now();pSave(true);S.pPort=false;window.scrollTo(0,0);break}
@@ -987,7 +1012,9 @@ function pAction(a){
   }
   if(p)p.maj=Date.now();pSave(true);render();
 }
-app.addEventListener("pointerdown",e=>{if(e.target.closest(".nfbar"))e.preventDefault()});
+app.addEventListener("pointerdown",e=>{if(e.target.closest(".nfbar,.ncols"))e.preventDefault()});
+app.addEventListener("focusin",e=>{if(e.target.id==="pnta"){try{document.execCommand("defaultParagraphSeparator",false,"div")}catch(x){}}});
+app.addEventListener("paste",e=>{if(e.target.closest&&e.target.closest("#pnta")){e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData("text/plain");document.execCommand("insertText",false,t)}});
 app.addEventListener("click",e=>{const a=e.target.closest("[data-pa]");if(!a||!app.contains(a))return;e.preventDefault();pAction(a)});
 app.addEventListener("input",e=>{const t=e.target;
   if(t.dataset.pnote){pNoteInput(t);return}
