@@ -857,6 +857,11 @@ window.PRETIRES = [
    "PSY": 2,
    "INS": 3
   },
+  "priv": {
+   "AGI": true,
+   "INT": true,
+   "PSY": true
+  },
   "k": {
    "Athlétisme": 2,
    "Force": 1,
@@ -994,6 +999,11 @@ window.PRETIRES = [
    "INT": 4,
    "PSY": 3,
    "INS": 3
+  },
+  "priv": {
+   "AGI": true,
+   "INT": true,
+   "PSY": true
   },
   "k": {
    "Résistance": 1,
@@ -1133,6 +1143,11 @@ window.PRETIRES = [
    "INT": 1,
    "PSY": 3,
    "INS": 4
+  },
+  "priv": {
+   "PHY": true,
+   "CHA": true,
+   "INS": true
   },
   "k": {
    "Athlétisme": 1,
@@ -1322,6 +1337,11 @@ window.PRETIRES = [
    "INT": 4,
    "PSY": 3,
    "INS": 2
+  },
+  "priv": {
+   "AGI": true,
+   "INT": true,
+   "PSY": true
   },
   "k": {
    "Athlétisme": 1,
