@@ -671,7 +671,7 @@ function pCombat(p){
   /* annuler */
   const U=(S.pUndo||[]).filter(u=>u.id===p.id);
   if(U.length)h+=`<button class="btn pundo" data-pa="undo">↶ Annuler : ${esc(U[U.length-1].label)}</button>`;
-  return h;
+  return `<div class="stack pcmb">${h}</div>`;
 }
 function pAgentUI(p,w,i,cap,ld){const a=pAgentFind(w.agent),st=pAgentStock(p,w),sel=pAgentSel(p,w,i);
   return `<div class="pammo">${trackBoxes(cap,ld,"ammo")}<span class="pamt">${ld}/${cap}</span></div>

@@ -427,3 +427,28 @@ details.card.ppotc{border-left:3px solid var(--red)}
 .psoin .pkb{flex:1 1 calc(100% - 50px)}
 .psoin .pq{margin-left:40px}
 .psoin .btn.sm{margin-left:auto}
+
+/* Onglet Combat : habillage « HUD compact » (retour possible : étiquette git avant-hud, copie dans _outils/avant-hud) */
+.pcmb .psec{background:linear-gradient(180deg,#131313,#0d0d0d)!important;border:0!important;border-top:1px solid #2a2a2a!important;padding:12px!important;gap:10px;position:relative}
+.pcmb .psec::before{content:"";position:absolute;left:0;top:-1px;width:56px;height:2px;background:#e0213a}
+.pcmb .pst{background:none!important;border:0!important;margin:-4px 0 2px!important;padding:0!important;font-size:13px!important;letter-spacing:.26em!important;color:#9a9a9a!important;display:flex;align-items:center;gap:10px}
+.pcmb .pst::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#333,transparent)}
+.pcmb .psec:has(.ptrk){display:grid!important;grid-template-columns:1fr 1fr;gap:8px}
+.pcmb .psec:has(.ptrk)>.pst{grid-column:1/-1}
+.pcmb .psec:has(.ptrk)>:not(.ptrk):not(.pst){grid-column:1/-1}
+.pcmb .ptrk{margin:0!important;padding:10px!important;background:#0a0a0a!important;border:1px solid #262626!important;border-top:2px solid var(--tc)!important;gap:6px!important;min-width:0}
+.pcmb .ptrk .tbtn{width:36px;height:36px;font-size:22px}
+.pcmb .btn,.pcmb .roll{border-radius:3px!important;border:1px solid #3b3b3b!important;background:linear-gradient(180deg,#1b1b1b,#121212)!important;box-shadow:0 1px 0 #000}
+.pcmb .btn.red,.pcmb .roll{border-color:#e0213a!important;background:linear-gradient(180deg,#d9142f,#b50f27)!important;box-shadow:0 0 18px rgba(224,33,58,.28)}
+.pcmb .pwpn{border:1px solid #262626!important;border-left:3px solid #e0213a!important;background:#0a0a0a;padding:10px!important;border-radius:3px}
+.pcmb .pwva{font-size:30px!important}
+.pcmb .ptrb{display:grid!important;grid-template-columns:1fr 1fr;gap:6px!important}
+.pcmb .ptrb>:not(.tbtn){grid-column:1/-1;order:3}
+.pcmb .ptrb .tbtn{width:100%!important;height:40px!important}
+.pcmb .ptrh{flex-wrap:wrap;gap:4px 8px!important}
+.pcmb .ptrh .ptrl{font-size:13px!important;line-height:1.1;flex:1 1 60%}
+.pcmb .ptrh .ptrv{font-size:26px!important;margin-left:auto}
+.pcmb .ptrh svg{width:22px;height:22px}
+.pcmb .psec:has(.ptrk){align-items:start}
+.pcmb .ptrk.ego{order:1}.pcmb .ptrk.bles{order:2}.pcmb .ptrk.spo{order:3}.pcmb .ptrk.trau{order:4}
+.pcmb .psec:has(.ptrk)>.pst{order:0}
