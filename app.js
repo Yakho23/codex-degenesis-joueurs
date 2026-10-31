@@ -896,9 +896,9 @@ function nmd(t){const il=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace
   close();return h}
 const nDay=t=>new Date(t).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
 const nHour=t=>new Date(t).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
-const N_COL=[["#EC1E26","Rouge"],["#D9A441","Ambre"],["#5FAE6B","Vert"],["#5B9BD5","Bleu"],["#B07CD8","Violet"],["#8E887E","Gris"]];
+const N_COL=[["#5B9BD5","Bleu"],["#EC1E26","Rouge"],["#5FAE6B","Vert"]];
 const N_DEF="#f2efe8";
-const N_TOOLS=[["b","<b>G</b>","Gras"],["i","<i>I</i>","Italique"],["s","<s>S</s>","Barré"],["h","T","Titre"],["l","•","Liste"],["q","❝","Citation"]];
+const N_TOOLS=[["b","<b>G</b>","Gras"],["i","<i>I</i>","Italique"],["s","<s>S</s>","Barré"]];
 /* HTML des notes : on ne garde qu’un petit jeu de balises et les couleurs de la palette */
 function nsan(html){const doc=new DOMParser().parseFromString("<body>"+String(html||"")+"</body>","text/html"),ok={B:"b",STRONG:"b",I:"i",EM:"i",S:"s",STRIKE:"s",DEL:"s",H1:"h4",H2:"h4",H3:"h4",H4:"h4",UL:"ul",OL:"ul",LI:"li",BLOCKQUOTE:"blockquote",P:"div",DIV:"div",BR:"br"},cols=N_COL.map(c=>c[0].toLowerCase());
   const col=n=>{let c=(n.getAttribute&&n.getAttribute("color"))||(n.style&&n.style.color)||"";c=String(c).trim().toLowerCase();
@@ -916,8 +916,7 @@ const nTxt=h=>{const d=document.createElement("div");d.innerHTML=nsan(h);return 
 const nHtml=n=>n.html?nsan(n.html):nmd(n.tx);
 function pNotes(p){
   const ed=S.pNoteEd&&p.journal.find(n=>n.id===S.pNoteEd),html=ed?(S.pNoteEdTxt??nHtml(ed)):p.brouillonH,has=!!nTxt(html);
-  const bar=`<div class="nfbar" role="toolbar" aria-label="Mise en forme">${N_TOOLS.map(([k,l,t])=>`<button type="button" class="nfb" data-pa="nfmt" data-v="${k}" aria-label="${t}" title="${t}">${l}</button>`).join("")}</div>
-   <div class="ncols" role="toolbar" aria-label="Couleur du texte">${N_COL.map(([c,n])=>`<button type="button" class="ncb" data-pa="ncol" data-v="${c}" aria-label="${n}" title="${n}" style="--c:${c}"></button>`).join("")}<button type="button" class="ncb ncn" data-pa="ncol" data-v="" aria-label="Couleur normale" title="Couleur normale">A</button></div>`;
+  const bar=`<div class="nfbar" role="toolbar" aria-label="Mise en forme">${N_TOOLS.map(([k,l,t])=>`<button type="button" class="nfb" data-pa="nfmt" data-v="${k}" aria-label="${t}" title="${t}">${l}</button>`).join("")}<span class="nsep" aria-hidden="true"></span><button type="button" class="ncb ncn" data-pa="ncol" data-v="" aria-label="Blanc" title="Blanc"></button>${N_COL.map(([c,n])=>`<button type="button" class="ncb" data-pa="ncol" data-v="${c}" aria-label="${n}" title="${n}" style="--c:${c}"></button>`).join("")}</div>`;
   const editor=`<section class="psec pnote"><div class="pst">${ed?"Modifier la note":"Nouvelle note"}</div>${bar}
     <div class="pin nta" id="pnta" data-pnote="1" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Texte de la note" data-ph="Indices, PNJ rencontrés, objectifs…">${html}</div>
     <div class="btnrow">${ed?`<button class="btn red" data-pa="nsave" ${has?"":"disabled"} id="pnbtn">Enregistrer</button><button class="btn" data-pa="ncancel">Annuler</button>`:`<button class="btn red" data-pa="nadd" ${has?"":"disabled"} id="pnbtn">Ajouter la note</button>`}</div>
