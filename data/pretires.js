@@ -233,5 +233,113 @@ window.PRETIRES = [
   ],
   "artef": [],
   "portrait": "assets/pretires/kravic.jpg"
+ },
+ {
+  "nom": "Bojan Tarnovic",
+  "age": "21",
+  "rang": "2 : Caporal",
+  "xp": "",
+  "sexe": "Masculin",
+  "taille": "1 m 92",
+  "poids": "98 kg",
+  "lc": "100",
+  "culture": "Balkhans",
+  "concept": "Le Protecteur",
+  "culte": "Hellvétiques",
+  "her": [
+   "",
+   "",
+   ""
+  ],
+  "a": {
+   "PHY": 3,
+   "AGI": 3,
+   "CHA": 1,
+   "INT": 3,
+   "PSY": 5,
+   "INS": 1
+  },
+  "k": {
+   "Corps à corps": 2,
+   "Force": 4,
+   "Résistance": 1,
+   "Armes à projectiles": 3,
+   "Furtivité": 2,
+   "Mobilité": 2,
+   "Navigation": 1,
+   "Commandement": 1,
+   "Concentration": 2,
+   "Réactivité": 4,
+   "Volonté": 2,
+   "Perception": 2,
+   "Survie": 2
+  },
+  "o": {
+   "Alliés": 2,
+   "Autorité": 2
+  },
+  "pots": [
+   {
+    "n": "Doctrine : Discipline",
+    "lvl": 1
+   }
+  ],
+  "pistes": {
+   "ego": {
+    "max": 10,
+    "v": 0
+   },
+   "spo": {
+    "max": 14,
+    "v": 0,
+    "perm": 0
+   },
+   "bles": {
+    "max": 8,
+    "v": 0
+   },
+   "trau": {
+    "max": 8,
+    "v": 0
+   }
+  },
+  "armes": [
+   {
+    "nom": "Défricheur",
+    "comp": "AGI+ARMES À PROJECTILES",
+    "man": "–",
+    "portee": "30 /120",
+    "deg": "11",
+    "charg": "35",
+    "cal": "Balle blindée HF",
+    "prop": "Régularité (3DC), Rafale (3)",
+    "enc": "2",
+    "tech": "IV",
+    "empl": "2",
+    "cat": "Fusils",
+    "cur": 35
+   }
+  ],
+  "armures": [
+   {
+    "nom": "Harnais d’Éclaireur",
+    "va": "3",
+    "prop": "Camouflage (5)",
+    "enc": "2",
+    "tech": "IV",
+    "empl": "2"
+   }
+  ],
+  "equip": [],
+  "mun": [
+   {
+    "nom": "Balle blindée HF",
+    "chargeurs": 1,
+    "balles": 35,
+    "deg": "11"
+   }
+  ],
+  "artef": [],
+  "portrait": "assets/pretires/bojantarnovic.jpg"
  }
 ];
