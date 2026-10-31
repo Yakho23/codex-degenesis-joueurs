@@ -468,3 +468,12 @@ details.card.ppotc{border-left:3px solid var(--red)}
 /* Combat : fond des blocs un peu plus gris */
 .pcmb .psec{background:linear-gradient(180deg,#1d1d1d,#171717)!important;border-top-color:#e0213a!important}
 .pcmb .ptrk,.pcmb .pwpn{background:#121212!important}
+/* Combat : texture carbone sur le fond des blocs */
+.pcmb .psec{background:
+ linear-gradient(180deg,rgba(23,23,23,.35),rgba(23,23,23,.5)),
+ linear-gradient(27deg,#141414 5px,transparent 5px) 0 5px/20px 20px,
+ linear-gradient(207deg,#141414 5px,transparent 5px) 10px 0/20px 20px,
+ linear-gradient(27deg,#232323 5px,transparent 5px) 0 10px/20px 20px,
+ linear-gradient(207deg,#232323 5px,transparent 5px) 10px 5px/20px 20px,
+ linear-gradient(90deg,#1a1a1a 10px,transparent 10px) 0 0/20px 20px,
+ linear-gradient(#1d1d1d 25%,#191919 25%,#191919 50%,transparent 50%,transparent 75%,#262626 75%,#262626) 0 0/20px 20px #202020!important}
