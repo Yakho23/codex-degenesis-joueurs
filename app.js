@@ -413,7 +413,7 @@ const pInject=w=>/injection/i.test(w&&w.nom||"");
 const pAgentW=w=>!!w&&(pInject(w)||/^cartouches?$/i.test(String(w.cal||"").trim()));
 const pAgentFull=w=>/fongicide/i.test(w&&w.nom||"");
 const pAgentOf=x=>pAgentFind(x.agent)||P_AGENTS.find(r=>norm(x.nom).includes(norm(r.Agent)));
-const pAgentStock=(p,w)=>p.mun.map((x,i)=>({x,i,a:pAgentOf(x)})).filter(o=>o.a&&(+o.x.balles||0)>0&&(!pInject(w)||o.a.Injecteur==="oui"));
+const pAgentStock=(p,w)=>p.mun.map((x,i)=>({x,i,a:pAgentOf(x)})).filter(o=>o.a&&(+o.x.balles||0)>0&&(!pInject(w)||o.a.Injecteur==="oui")&&(pAgentFull(w)||!o.x.uses)); /* cartouche entamée (champ « uses » = utilisations restantes) : réservée au fusil fongicide */
 const pAgentSel=(p,w,i)=>{const st=pAgentStock(p,w),v=S.pAgSel&&S.pAgSel[p.id+":"+i];return st.some(o=>norm(o.x.nom)===norm(v))?v:(st[0]?st[0].x.nom:"")};
 const pRanged=(p,w)=>(pCap(w)>0&&!pInject(w))||/projectile|jet/i.test(norm(w.comp));
 const pMelee=(p,w)=>!pRanged(p,w)&&/corps a corps|lutte/.test(norm(w.comp)||"corps a corps");
@@ -619,7 +619,7 @@ function pCombat(p){
      ${w.prop?`<div class="pil pml">${esc(w.prop)}</div>`:""}${pGrenade(w)?`<div class="pammo pgren">${(+w.qte||0)>0?`<span class="pgi">${Array.from({length:Math.min(+w.qte||0,12)},()=>IC_GRENADE).join("")}</span>`:`<span class="pil">Plus de grenade</span>`}<span class="pamt">${+w.qte||0}</span></div>`:""}
      ${cap&&pAgentW(w)?pAgentUI(p,w,i,cap,ld):cap?`<div class="pammo">${trackBoxes(cap,ld,"ammo")}<span class="pamt">${ld}/${cap}</span></div>
        <div class="pil">${w.cal?`Réserve ${esc(w.cal)} : ${stock.b} balle${stock.b>1?"s":""}${stock.c?` (${stock.c} chargeur${stock.c>1?"s":""})`:""}`:"Indique le calibre de l’arme dans l’Inventaire pour recharger depuis la réserve."}</div>`:""}
-     <div class="btnrow"><button class="btn red pib" data-pa="attack" data-k="${i}"${pActDis(p)||(pGrenade(w)&&(+w.qte||0)<=0?" disabled":"")}>${pSonic(w)?IC_SONIC:pGrenade(w)?IC_GRENADE:pRanged(p,w)?IC_BALL:IC_KNIFE}${pGrenade(w)?"Lancer":"Attaquer"}</button>${pMelee(p,w)?`<button class="btn pib" data-pa="wparry" data-k="${i}"${pActDis(p)}>${IC_PARRY}Parer</button>`:""}${cap?`<button class="btn" data-pa="reload" data-k="${i}"${ld>=cap&&!(pAgentW(w)&&pAgentSel(p,w,i)&&norm(pAgentSel(p,w,i))!==norm(w.agent))?" disabled":""}>Recharger</button>`:""}</div>${pRollPanel(p,"w:"+i)}${pRollPanel(p,"wp:"+i)}</div>`}).join(""):`<p class="pnone">Aucune arme. Ajoute-les dans l’Inventaire.</p>`}</section>`;
+     <div class="btnrow"><button class="btn red pib" data-pa="attack" data-k="${i}"${pActDis(p)||(pGrenade(w)&&(+w.qte||0)<=0?" disabled":"")}>${pSonic(w)?IC_SONIC:pGrenade(w)?IC_GRENADE:pRanged(p,w)?IC_BALL:IC_KNIFE}${pGrenade(w)?"Lancer":"Attaquer"}</button>${pMelee(p,w)?`<button class="btn pib" data-pa="wparry" data-k="${i}"${pActDis(p)}>${IC_PARRY}Parer</button>`:""}${cap?`<button class="btn" data-pa="reload" data-k="${i}"${(pAgentW(w)?!pAgentCan(p,w,i):ld>=cap)?" disabled":""}>Recharger</button>`:""}</div>${pRollPanel(p,"w:"+i)}${pRollPanel(p,"wp:"+i)}</div>`}).join(""):`<p class="pnone">Aucune arme. Ajoute-les dans l’Inventaire.</p>`}</section>`;
   /* à portée de main */
   const cons=p.equip.map((x,i)=>[x,i]).filter(([x])=>x.combat);
   h+=`<section class="psec"><div class="pst">À portée de main</div>${cons.length?cons.map(([x,i])=>`<div class="pcons"><div class="pih"><span class="pin2">${esc(x.nom||"—")}</span><span class="pq${(+x.qte||0)<=0?" low":""}">${pStep("equip."+i+".qte",+x.qte||0)}</span><button class="btn sm red" data-pa="use" data-k="${i}"${(+x.qte||0)<=0?" disabled":""}>Utiliser</button></div>${x.effet?`<div class="pil">${esc(x.effet)}</div>`:""}</div>`).join(""):`<p class="pnone">Coche « À portée de main en combat » sur un objet de l’Inventaire pour le retrouver ici.</p>`}</section>`;
@@ -632,14 +632,22 @@ function pAgentUI(p,w,i,cap,ld){const a=pAgentFind(w.agent),st=pAgentStock(p,w),
   return `<div class="pammo">${trackBoxes(cap,ld,"ammo")}<span class="pamt">${ld}/${cap}</span></div>
   <div class="pil pagent">${a?`<b>${esc(a.Agent)}</b>${ld?"":" (vide)"} · ${esc(a.Effet||"")}`:"Aucun agent chargé."}</div>
   ${st.length?`<select class="pin psel pagsel" data-pagsel="${i}">${st.map(o=>`<option value="${esc(o.x.nom)}"${norm(o.x.nom)===norm(sel)?" selected":""}>${esc(o.x.nom)} · ${+o.x.balles||0} en stock</option>`).join("")}</select>`:`<div class="pil">${pInject(w)?"Aucune dose en stock (agents « Injecteur : oui » dans les Munitions).":"Aucune cartouche en stock : ajoute une cartouche d’agent dans les Munitions."}</div>`}`}
-function pAgentReload(p,w,i){const cap=pCap(w),ld=pLoaded(w),st=pAgentStock(p,w);
-  if(!st.length){toast(pInject(w)?"Aucune dose en stock":"Aucune cartouche en stock");return true}
-  const n=pAgentSel(p,w,i),o=st.find(o=>norm(o.x.nom)===norm(n))||st[0],same=norm(w.agent)===norm(o.a.Agent),full=pAgentFull(w);
-  if(same&&ld>=cap){toast("Déjà chargé : "+o.a.Agent);return true}
-  pSnap(p,"Recharger "+(w.nom||""));
-  if(full){o.x.balles=(+o.x.balles||0)-1;w.agent=o.a.Agent;w.cur=cap;toast("Cartouche « "+o.a.Agent+" » chargée · "+cap+" utilisations")}
-  else{const need=same?cap-ld:cap,t=Math.min(need,+o.x.balles||0);o.x.balles=(+o.x.balles||0)-t;w.agent=o.a.Agent;w.cur=(same?ld:0)+t;toast(t+" × « "+o.a.Agent+" » chargé"+(t>1?"s":"")+(w.cur<cap?" (stock épuisé)":""))}
-  return true}
+/* retire l’agent chargé : cartouche entamée gardée en stock avec ses utilisations restantes (fusil), ou cartouches rendues au stock (lance-cartouches, pistolet) */
+function pAgentUnload(p,w){const ld=pLoaded(w),a=pAgentFind(w.agent);if(!a||ld<=0)return;
+  const mk=(nom,n,u)=>{const m=p.mun.find(x=>x.nom===nom);if(m)m.balles=(+m.balles||0)+n;else p.mun.push(Object.assign({nom,chargeurs:0,balles:n,deg:"–",agent:a.Agent,effet:a.Effet||""},u?{uses:u}:{}))};
+  if(pAgentFull(w)){const cap=pCap(w);if(ld>=cap)mk(a.Nom,1,0);else mk(a.Nom+" (entamée, "+ld+"/"+cap+")",1,ld)}
+  else mk(a.Nom,ld,0);
+  w.cur=0}
+const pAgentPick=(p,w,i)=>{const st=pAgentStock(p,w),n=pAgentSel(p,w,i);return st.find(o=>norm(o.x.nom)===norm(n))||st[0]||null};
+function pAgentCan(p,w,i){const o=pAgentPick(p,w,i);if(!o)return true;const cap=pCap(w),ld=pLoaded(w);return !(norm(w.agent)===norm(o.a.Agent)&&ld>=cap&&!o.x.uses)}
+function pAgentReload(p,w,i){const cap=pCap(w),ld=pLoaded(w),o=pAgentPick(p,w,i);
+  if(!o){toast(pInject(w)?"Aucune dose en stock":"Aucune cartouche en stock");return true}
+  const full=pAgentFull(w),same=norm(w.agent)===norm(o.a.Agent);
+  if(!pAgentCan(p,w,i)){toast("Déjà chargé : "+o.a.Agent);return true}
+  pSnap(p,"Recharger "+(w.nom||""));let msg;
+  if(full){const part=+o.x.uses||0,keep=ld>0&&ld<cap;pAgentUnload(p,w);o.x.balles=(+o.x.balles||0)-1;w.agent=o.a.Agent;w.cur=part||cap;msg="Cartouche « "+o.a.Agent+" » chargée · "+w.cur+" utilisation"+(w.cur>1?"s":"")+(keep?" (l’ancienne cartouche entamée reste en stock)":"")}
+  else{if(!same)pAgentUnload(p,w);const have=same?ld:0,t=Math.min(cap-have,+o.x.balles||0);o.x.balles=(+o.x.balles||0)-t;w.agent=o.a.Agent;w.cur=have+t;msg=t+" × « "+o.a.Agent+" » chargé"+(t>1?"s":"")+(w.cur<cap?" (stock épuisé)":"")}
+  p.mun=p.mun.filter(x=>!(x.uses&&(+x.balles||0)<=0));toast(msg);return true}
 function pSnap(p,label){S.pUndo=(S.pUndo||[]).concat({id:p.id,label,json:JSON.stringify(p)}).slice(-10)}
 let pWakeLock=null;
 async function pWake(on){try{if(on&&!pWakeLock&&navigator.wakeLock){pWakeLock=await navigator.wakeLock.request("screen");pWakeLock.addEventListener("release",()=>{pWakeLock=null})}else if(!on&&pWakeLock){await pWakeLock.release();pWakeLock=null}}catch(e){}}
