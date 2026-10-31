@@ -386,3 +386,27 @@ details.card.ppotc{border-left:3px solid var(--red)}
 .pmv button+button{border-top:1px solid var(--line2)}
 .pmv button:disabled{opacity:.25;cursor:default}
 .pmv svg{width:18px;height:18px}
+
+/* Bouton « Pré-tirés » (doré) */
+.btn.gold{color:#d9bd7c;border-color:#6e5f3c;background:rgba(217,189,124,.07)}
+.btn.gold.on{background:#d9bd7c;border-color:#d9bd7c;color:#0b0b0b}
+.btnrow .btn.file,.btnrow .btn.gold{white-space:nowrap}
+.ppre .pcard .btn.sm{align-self:center;margin-right:10px}
+
+/* Portrait des prétirés : carré, cadre doré */
+.pav.pport{width:86px;height:86px;clip-path:none;background:#0e0e0e;color:#b59a5a;position:relative}
+.pav.pport.big{width:116px;height:116px}
+.pav.pport .pimg{position:absolute;inset:6.5%;width:87%;height:87%;object-fit:cover;display:block;clip-path:polygon(8% 0,92% 0,100% 8%,100% 92%,92% 100%,8% 100%,0 92%,0 8%)}
+.pav.pport .pfr{position:absolute;inset:0;width:100%;height:100%}
+.pav.pport svg{width:100%;height:100%}
+.pav.pport .pph{display:grid;place-items:center;background:#000}
+.pav.pport .pph svg{width:52%;height:52%;color:var(--red)}
+.pav.pport .pph b{font-family:var(--f-dg);font-size:30px;font-weight:400;color:var(--mute)}
+.pav.pport.big .pph b{font-size:40px}
+.pcdel{flex:none;align-self:center;min-width:46px;min-height:46px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--line2);color:var(--mute);padding:0 10px;cursor:pointer;font-family:var(--f-ui);font-size:14.5px;letter-spacing:.04em;white-space:nowrap}
+.pcdel svg{width:22px;height:22px}
+.pcdel.on{background:var(--red);border-color:var(--red);color:#fff}
+.pcdl{color:#d9bd7c;border-color:#6e5f3c}
+.pcard{gap:10px}
+.pcacts{flex:none;display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.pcacts .pcdel{align-self:stretch}

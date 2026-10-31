@@ -205,7 +205,9 @@ const P_PARC=[["rang","Rang",'<path d="M4 7l8-4 8 4M4 12.5l8-4 8 4M4 18l8-4 8 4"
   ["xp","Expérience",'<path d="M12 2.5l2.6 6.9 6.9 2.6-6.9 2.6L12 21.5l-2.6-6.9L2.5 12l6.9-2.6z"/>',"points"],
   ["lc","LC / dinars",'<circle cx="12" cy="12" r="9"/><path d="M12 6.5v11M9.2 9.2h4.1a1.6 1.6 0 010 3.2h-2.6a1.6 1.6 0 000 3.2h4.2"/>',""]];
 const pParcours=p=>`<div class="pparc">${P_PARC.map(([k,l,svg])=>`<label class="ppc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${svg}</svg><span>${l}</span>${pIn(k,p[k],"—")}</label>`).join("")}</div>`;
-function pAvatar(p,cls){const ic=cultIcon(p.culte)||cultIcon(p.culture);return `<span class="pav ${cls||""}"><span class="pvi">${ic||`<b>${esc(DG((p.nom||"?").charAt(0)))}</b>`}</span></span>`}
+const P_FRAME='<svg class="pfr" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" vector-effect="non-scaling-stroke"><path stroke-width="1" opacity=".55" d="M9 .8h82l8.2 8.2v82L91 99.2H9L.8 91V9z"/><path stroke-width="1" opacity=".35" d="M13 5.2h74l7.8 7.8v74L87 94.8H13L5.2 87V13z"/><path stroke-width="2.4" stroke-linecap="square" d="M.8 26V9L9 .8h17M74 .8h17l8.2 8.2v17M99.2 74v17L91 99.2H74M26 99.2H9L.8 91V74"/></g></svg>';
+function pAvatar(p,cls){const ic=cultIcon(p.culte)||cultIcon(p.culture),ok=/^assets\/[\w\/.-]+\.(jpe?g|png|webp)$/i.test(p.portrait||"");
+  return `<span class="pav pport ${cls||""}">${ok?`<img class="pimg" src="${esc(p.portrait)}" alt="">`:`<span class="pimg pph">${ic||`<b>${esc(DG((p.nom||"?").charAt(0)))}</b>`}</span>`}${P_FRAME}</span>`}
 /* ───── Modifications (mods) des armes et des armures : liste à choisir, emplacements (Empl.) comptés ───── */
 /* familles : c = corps à corps, a = projectiles archaïques, e = énergétiques, f = armes à feu modernes, r = armures ; "w" = toutes les armes
    fx : effets calculés (deg, man = dés de Maniement, enc, arm = armure, cap = chargeur/charges, mul = multiplicateur de charges) */
@@ -363,11 +365,17 @@ function pCombatBar(p){const c=p.combat;if(!c||!c.on||S.pTab!=="combat")return "
 function pTabs(){const p=pCur();return p?chips([["combat","Combat"],["fiche","Fiche"],["inventaire","Inventaire"],["notes","Notes"]],S.pTab,"ptab","Fiche du personnage")+pCombatBar(p):""}
 function personnage(){const p=pCur();return p?pFiche(p):pList()}
 
+/* Personnages prétirés : liste fournie par data/pretires.js (window.PRETIRES = [fiches complètes, même format qu’une fiche exportée]) */
+function pPretires(){
+  const L=Array.isArray(window.PRETIRES)?window.PRETIRES:[];
+  return `<section class="psec ppre"><div class="pst">Personnages prétirés</div>${L.length?L.map((x,i)=>`<div class="pcard">${pAvatar(pNorm(x))}<div class="pcmain"><span class="pn">${esc(x.nom||"Sans nom")}</span><span class="pm">${esc([x.culte,x.rang].filter(Boolean).join(" · "))}</span><span class="pm2">${esc([x.culture,x.concept].filter(Boolean).join(" · "))}</span></div><button class="btn sm" data-pa="preadd" data-k="${i}">Ajouter</button></div>`).join(""):`<p class="pnone">Aucun personnage prétiré disponible pour l’instant.</p>`}</section>`}
 function pList(){
   const act=PERSOS.filter(p=>!p.arch),arch=PERSOS.filter(p=>p.arch);
-  const card=p=>`<div class="pcard">${pAvatar(p)}<button class="pcmain" data-pa="open" data-k="${p.id}"><span class="pn">${esc(p.nom||"Sans nom")}</span><span class="pm">${esc([p.culte,p.rang].filter(Boolean).join(" · "))}</span><span class="pm2">${esc([p.culture,p.concept].filter(Boolean).join(" · "))}</span></button>${p.arch?`<button class="btn sm" data-pa="unarch" data-k="${p.id}">Restaurer</button>`:""}</div>`;
+  const card=p=>`<div class="pcard">${pAvatar(p)}<button class="pcmain" data-pa="open" data-k="${p.id}"><span class="pn">${esc(p.nom||"Sans nom")}</span><span class="pm">${esc([p.culte,p.rang].filter(Boolean).join(" · "))}</span><span class="pm2">${esc([p.culture,p.concept].filter(Boolean).join(" · "))}</span></button>${p.arch?`<button class="btn sm" data-pa="unarch" data-k="${p.id}">Restaurer</button>`:""}<span class="pcacts"><button class="pcdel pcdl" data-pa="expc" data-k="${p.id}" aria-label="Enregistrer la fiche de ${esc(p.nom||"ce personnage")}" title="Enregistrer la fiche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19h14"/></svg></button><button class="pcdel${S.pConf==="delc:"+p.id?" on":""}" data-pa="conf" data-k="delc:${p.id}" aria-label="Supprimer ${esc(p.nom||"ce personnage")}">${S.pConf==="delc:"+p.id?"Sûr ?":'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>'}</button></span></div>`;
   return `<div class="stack">
-   <div class="btnrow"><button class="btn red" data-pa="new">+ Nouveau personnage</button><label class="btn file">Importer une fiche<input type="file" accept=".json,application/json" data-pfile="1" hidden></label></div>
+   <div class="btnrow"><button class="btn red" data-pa="new">+ Nouveau personnage</button></div>
+   <div class="btnrow"><label class="btn file">Importer une fiche<input type="file" accept=".json,application/json" data-pfile="1" hidden></label><button class="btn gold${S.pPre?" on":""}" data-pa="pre" aria-pressed="${!!S.pPre}">Pré-tirés</button></div>
+   ${S.pPre?pPretires():""}
    ${act.length?act.map(card).join(""):`<p class="empty">Aucun personnage sur ce téléphone. Crée ta fiche ou importe un fichier exporté.</p>`}
    ${arch.length?`<button class="chip" data-pa="showarch" aria-pressed="${!!S.pArch}">Archivés (${arch.length})</button>${S.pArch?arch.map(card).join(""):""}`:""}
    <p class="note">Les fiches sont enregistrées sur ce téléphone uniquement. Exporte-les de temps en temps pour les sauvegarder.</p></div>`;
@@ -829,12 +837,16 @@ function pAction(a){
     case "itemopen":S.pOpen=S.pOpen||{};S.pOpen[k]=!S.pOpen[k];break;
     case "bz":S.pBz=S.pBz&&S.pBz.list===k?null:{list:k,q:""};if(S.pBz)S._pFocus="#pbzq";break;
     case "bzadd":{const r=BAZAR[+a.dataset.v];if(r){const o=P_FROMBZ[k](r);Object.keys(o).forEach(f=>{if(typeof o[f]==="string"||o[f]==null)o[f]=dash(o[f])});p[k].push(o);toast("Ajouté : "+r.Nom)}S.pBz=null;break}
+    case "pre":S.pPre=!S.pPre;render();return;
+    case "preadd":{const L=Array.isArray(window.PRETIRES)?window.PRETIRES:[],src=L[+k];if(!src)return;const c=pNorm(JSON.parse(JSON.stringify(src)));c.id=uid();c.cree=Date.now();c.maj=Date.now();c.arch=false;PERSOS.push(c);pSave(true);S.pPre=false;toast("Ajouté : "+(c.nom||"personnage prétiré"));render();return}
+    case "expc":{const q=PERSOS.find(o=>o.id===k);if(q)pExport(q);return}
     case "export":pExport(p);return;
     case "dup":{const c=pNorm(JSON.parse(JSON.stringify(p)));c.id=uid();c.nom=(p.nom||"Sans nom")+" (copie)";c.cree=Date.now();PERSOS.push(c);S.pid=c.id;toast("Copie créée");window.scrollTo(0,0);break}
     case "arch":p.arch=!p.arch;if(p.arch){S.pid=null;toast("Personnage archivé")}break;
     case "conf":{if(S.pConf!==k){S.pConf=k;break}S.pConf=null;
       if(k==="cend"){pSnap(p,"Terminer le combat");p.combat={on:false};S.pRoll=null;window.scrollTo(0,0)}
       else if(k==="delp"){PERSOS=PERSOS.filter(o=>o.id!==p.id);S.pid=null;toast("Personnage supprimé")}
+      else if(k.startsWith("delc:")){const id=k.slice(5),q=PERSOS.find(o=>o.id===id);PERSOS=PERSOS.filter(o=>o.id!==id);toast("Personnage supprimé"+(q&&q.nom?" : "+q.nom:""))}
       else if(k.startsWith("dm:")){S.pModInfo={};const [,path,i]=k.split(":"),x=pGet(p,path),key=path.split(".")[0];if(x&&Array.isArray(x.mods)){const e=x.mods[+i],id=e&&e.m;pModRevert(x,key,e);x.mods.splice(+i,1);
         /* un mod retiré emporte ceux qui en dépendent (leurs effets sont annulés aussi) */
         if(id&&!x.mods.some(y=>y&&y.m===id))for(let j=x.mods.length-1;j>=0;j--){const d=P_MODID[x.mods[j]&&x.mods[j].m];if(d&&d.req===id){pModRevert(x,key,x.mods[j]);x.mods.splice(j,1)}}}}
