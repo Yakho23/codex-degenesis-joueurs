@@ -155,13 +155,13 @@ const P_SEL={sexe:["Masculin","Féminin"],culture:P_CULTURES,concept:P_NOMS.conc
 const P_ID=[["nom","Nom"],["age","Âge"],["rang","Rang"],["xp","Expérience"],["sexe","Sexe"],["taille","Taille"],["poids","Poids"],["lc","LC / dinars"],["culture","Culture"],["concept","Concept"],["culte","Culte"]];
 const herFind=n=>{const q=norm(n).trim();return q?P_HER.find(h=>norm(h.n)===q)||P_HER.find(h=>q.startsWith(norm(h.n)+" ")||q.startsWith(norm(h.n)+"(")):null};
 const P_LISTS={
- armes:{t:"Armes",f:[["nom","Nom"],["comp","Compétence d’attaque"],["man","Maniement"],["portee","Portée"],["deg","Dégâts"],["charg","Chargeur"],["cal","Calibre"],["cur","Balles dans l’arme","n"],["prop","Propriétés"],["enc","Enc."],["tech","Tech"],["empl","Empl."]],bz:r=>r._grp==="armes"&&r._cat!=="Munitions"},
+ armes:{t:"Armes",f:[["nom","Nom"],["comp","Compétence d’attaque"],["man","Maniement"],["portee","Portée"],["deg","Dégâts"],["charg","Chargeur"],["cal","Calibre"],["cur","Balles dans l’arme","n"],["qte","Grenades possédées","n"],["prop","Propriétés"],["enc","Enc."],["tech","Tech"],["empl","Empl."]],bz:r=>r._grp==="armes"&&r._cat!=="Munitions"},
  armures:{t:"Armures",f:[["nom","Nom"],["va","Valeur d’armure"],["prop","Propriétés"],["enc","Enc."],["tech","Tech"],["empl","Empl."]],bz:r=>r._grp==="protection"},
  mun:{t:"Munitions",f:[["nom","Calibre ou type"],["chargeurs","Chargeurs (indicatif)","n"],["balles","Balles (total, armes comprises)","n"],["deg","Dégâts"]],bz:r=>r._cat==="Munitions"},
  equip:{t:"Équipement et consommables",f:[["nom","Nom"],["qte","Quantité","n"],["enc","Enc."],["effet","Effet ou note"],["combat","À portée de main en combat","b"]],bz:r=>["equipement","medical"].includes(r._grp)||(r._grp==="armes"&&r._cat==="Agents chimiques")},
 };
 const P_FROMBZ={
- armes:r=>({nom:r.Nom,comp:r._skill||"",man:r["Man."],portee:r["Portée"],deg:r["Dégâts"],charg:r["Charg."],cal:r["Cal."],prop:r["Propriétés"],enc:r["Enc."],tech:r.Tech,empl:r["Empl."]}),
+ armes:r=>Object.assign({nom:r.Nom,comp:r._skill||"",man:r["Man."],portee:r["Portée"],deg:r["Dégâts"],charg:r["Charg."],cal:r["Cal."],prop:r["Propriétés"],enc:r["Enc."],tech:r.Tech,empl:r["Empl."]},/d[ée]viation/i.test(r["Propriétés"]||"")?{qte:1}:{}),
  armures:r=>({nom:r.Nom,va:r["Valeur d’armure"]||(r["Défense"]?"Défense "+r["Défense"]+(r.Attaque&&r.Attaque!=="–"?" · Attaque "+r.Attaque:""):""),prop:r["Propriétés"],enc:r["Enc."],tech:r.Tech,empl:r["Empl."]}),
  mun:r=>({nom:r.Nom,chargeurs:0,balles:0,deg:r["Dégâts"]}),
  equip:r=>({nom:r.Nom,qte:1,enc:r["Enc."],effet:r.Effet||r["Propriétés"]||"",combat:false})};
@@ -179,6 +179,7 @@ function pNorm(x){const b=pBlank(),p=Object.assign(b,x||{});
   ["a","priv","k","o","stats","pistes"].forEach(k=>{if(typeof p[k]!=="object"||!p[k]||Array.isArray(p[k]))p[k]=b[k]});
   ["her","pots","armes","armures","mun","equip","artef","etats"].forEach(k=>{if(!Array.isArray(p[k]))p[k]=[]});
   while(p.her.length<3)p.her.push("");
+  p.armes.forEach(w=>{if(w&&/d[ée]viation/i.test(String(w.prop||""))&&w.qte==null)w.qte=1}); /* grenades déjà présentes : 1 en stock */
   P_PISTES.forEach(([k,,m])=>{const t=p.pistes[k];p.pistes[k]={max:Math.max(1,Math.min(60,+(t&&t.max)||m)),v:Math.max(0,+(t&&t.v)||0)};if(k==="spo")p.pistes[k].perm=Math.max(0,+(t&&t.perm)||0)});
   return p}
 PERSOS=PERSOS.map(pNorm);
@@ -219,6 +220,8 @@ function potSelect(path,val,culte){
   return `<select class="pin psel" data-pf="${path}"><option value="">— Choisir un Potentiel —</option>${extra}${groups.map(([g,L])=>`<optgroup label="${esc(g)}">${[...L].sort((a,b)=>a.t.localeCompare(b.t,"fr")).map(x=>`<option${x.t===val?" selected":""}>${esc(x.t)}</option>`).join("")}</optgroup>`).join("")}</select>`;
 }
 
+const IC_GRENADE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><ellipse cx="11" cy="15" rx="6" ry="6.5"/><path d="M8.5 9.6V7h5v2.6M8.5 7.5h7.5l2-2.2M16.5 5.3l2.8.4M5.5 13.5h11M5.5 16.5h11M11 8.5v13"/><circle cx="19.5" cy="9" r="1.6"/></svg>';
+const pGrenade=w=>/d[ée]viation/i.test(String(w&&w.prop||""));
 const IC_BALL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M9 21V9c0-3 1.3-5.5 3-7 1.7 1.5 3 4 3 7v12z"/><path d="M8 21h8M9 12h6"/></svg>';
 const IC_SONIC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5v5h3.5L11 18.5v-13L6.5 9.5z"/><path d="M14.5 9a4 4 0 010 6"/><path d="M17.5 6.5a8 8 0 010 11"/><path d="M20.5 4a11.5 11.5 0 010 16" opacity=".6"/></svg>';
 /* armes soniques (Raccordeur, Vocodeur) : jet Technologie puis jet Domination, dégâts 1 + DC Technologie + DC Domination */
@@ -258,7 +261,6 @@ function pFiche(p){
 /* ───── Écran Combat ───── */
 /* Ego : la piste stocke les points DÉPENSÉS (0 = Ego au maximum) ; affichage = points restants.
    Blessures, Traumatismes, Sporulations : la piste stocke les cases cochées. */
-const P_ETATS=[["hemo","Hémorragie","Complications"],["incons","Inconscient","Complications"],["infect","Infection","Infections"],["poison","Empoisonné","Poisons, maladies, la Vorace"],["feu","En feu","Feu, chute, explosions"],["asphyx","Asphyxie","Noyade, fumée, gaz"],["lutte","Agrippé / étranglé","Lutte et étranglement"],["etourdi","Étourdi","Propriétés des armes (E–Z)"],["couvert","À couvert","Défense passive"]];
 const P_ABBR={PHY:"PHY",AGI:"AGI",CHA:"CHA",INT:"INT",PSY:"PSY",INS:"INS"};
 /* Maniement : bonus ou malus en D aux jets d’attaque et de défense avec l’arme (+1, +1d, +1 D, −2…) */
 function pMan(w){const s=String(w&&w.man||"").replace(/[\u2212\u2013\u2014\u2012]/g,"-").trim();const m=s.match(/([+\-])?\s*(\d+)\s*(?:d\b|d$)?/i);if(!m)return 0;return (m[1]==="-"?-1:1)*(+m[2])}
@@ -313,11 +315,14 @@ function pTrack(p,k,l){
    un jet par cible, dégâts de rafale divisés (arrondi inférieur), pas plus de cibles que de balles.
    Régularité (nDC) : avec n déclencheurs, nouvelle attaque immédiate à −2D (cumulatif). (Katharsys, propriétés des armes) */
 const pRegul=w=>{const m=String(w&&w.prop||"").match(/r[ée]gularit[ée]\s*\((\d+)\s*DC\)/i);return m?+m[1]:0};
+/* distance de tir : normale, longue (−4D) ou extrême (−8D) — armes à distance et grenades seulement */
+const pRngOk=(p,w)=>!!w&&(pRanged(p,w)||pGrenade(w));
+const pRngMal=(p,R,w)=>R.kind==="att"&&pRngOk(p,w)?(+R.rng||0):0;
 function pPlan(p,R){
   const w=R.w!=null?p.armes[R.w]:null,cap=w&&R.sonic!==2?pCap(w):0,rx=w&&cap?pRafale(w):0,raf=rx?R.raf:0;
   const cib=raf?Math.max(1,Math.min(R.cib||1,raf)):1;
   const c=p.combat||{},egoInit=c.on&&c.ego&&!c.egoUsed&&R.kind!=="init"&&R.at!=="spo"&&R.at!=="def:mentale"&&R.sonic!==2&&!R.regul?c.ego:0; /* Ego dépensé à l’Initiative : +nD à la 1re action du round */
-  const pool=Math.max(0,R.base-pTrauMalus(p)+R.mod+(R.kind==="init"?R.ego:0)+egoInit+raf-2*(R.regul||0));
+  const pool=Math.max(0,R.base-pTrauMalus(p)+R.mod+(R.kind==="init"?R.ego:0)+egoInit+raf-2*(R.regul||0)-4*pRngMal(p,R,w));
   /* dés partagés entre les cibles ; le reste de la division va aux premières cibles (1 dé chacune) */
   const per=Math.floor(pool/cib),rem=pool%cib,dice=Array.from({length:cib},(_,i)=>per+(i<rem?1:0));
   /* balles réparties comme les dés : le reste va aux premières cibles (3 balles sur 2 cibles : 2 + 1) ; +1 dégât par balle reçue */
@@ -372,7 +377,7 @@ function pRollPanel(p,at){
       res=pOneRes(r,1,"sonic",w,0,"Domination · PSY + Domination",p).replace(/ · difficulté 1/,"")+(r.succ>0?`<div class="prson"><div class="prdmg"><b>Défense de la cible</b> : PSY + Foi/Volonté, difficulté <b>${r.succ}</b>.</div><div class="prdmg">Dégâts : 1 + ${t} (DC Technologie) + ${r.trig} (DC Domination) = <b>${tot}</b> point${tot>1?"s":""} ${d[0]}</div></div>`:`<div class="ptrw">Aucun succès en Domination : la cible n’est pas touchée.</div>`)}}
   else if(R.res){
     const n=R.res.length;
-    res=(R.chain&&R.chain.length?`<div class="prchains">${R.chain.map(c=>pChainLine(c,P.w,p)).join("")}</div>`:"")+(R.resInfo?`<div class="prinfo">${esc(R.resInfo)}</div>`:"")+R.res.map((r,i)=>pOneRes(r,R.resDiff,R.kind,P.w,pRd(R.resRafDmg,i),n>1?"Cible "+(i+1):"",p)).join("");
+    res=(R.chain&&R.chain.length?`<div class="prchains">${R.chain.map(c=>pChainLine(c,P.w,p)).join("")}</div>`:"")+(R.resInfo?`<div class="prinfo">${esc(R.resInfo)}</div>`:"")+R.res.map((r,i)=>pOneRes(r,R.resDiff,R.kind,P.w,pRd(R.resRafDmg,i),n>1?"Cible "+(i+1):"",p)).join("")+(R.dev?pDevView(R.dev):"");
     const rg=P.w?pRegul(P.w):0;
     if(R.kind==="att"&&rg&&R.res.some(r=>r.succ>=R.resDiff&&r.trig>=rg)){
       const can=!P.cap||pLoaded(P.w)>=(R.resRaf||1);
@@ -384,11 +389,12 @@ function pRollPanel(p,at){
     mode=`<div class="prmode">${opts.map(v=>`<button class="chip" data-pa="rraf" data-v="${v}" aria-pressed="${P.raf===v}"${v>ld?" disabled":""}>${v?"Rafale "+v:"Coup par coup"}</button>`).join("")}</div>`;
     if(P.raf)mode+=`<div class="prrow"><span>Cibles <small>(1 à ${P.raf})</small></span>${pStep2("rcib",P.cib)}</div>`;}
   const split=P.cib>1?(P.pool%P.cib?P.dice.map(d=>d+"D").join(" + "):`${P.cib} × ${P.per}D`):`${P.pool}D`;
-  const recap=[R.calc,tm?`Traumatismes −${tm}D`:"",P.egoInit?`Ego de l’Initiative +${P.egoInit}D (1re action)`:"",P.raf?`Rafale +${P.raf}D`:"",R.regul?`Régularité −${2*R.regul}D`:""].filter(Boolean).join(" · ");
+  const recap=[R.calc,tm?`Traumatismes −${tm}D`:"",P.egoInit?`Ego de l’Initiative +${P.egoInit}D (1re action)`:"",P.raf?`Rafale +${P.raf}D`:"",pRngMal(p,R,P.w)?`Portée ${R.rng===1?"longue":"extrême"} −${4*R.rng}D`:"",R.regul?`Régularité −${2*R.regul}D`:""].filter(Boolean).join(" · ");
   const dmgPrev=P.w&&P.w.deg?(P.cib>1&&P.raf?P.balls.map((b,i)=>`<div class="prdmg">Dégâts cible ${i+1} (${b} balle${b>1?"s":""}) : ${pDmg(P.w,b,0,p)} + déclencheurs</div>`).join(""):`<div class="prdmg">Dégâts : ${pDmg(P.w,P.rafDmg,0,p)} + déclencheurs</div>`):"";
   return `<div class="proll"><div class="prh"><span>${esc(R.label)}${R.regul?` · attaque ${R.regul+1}`:""}</span><button class="prx" data-pa="rollx" aria-label="Fermer">×</button></div>
    <div class="prcalc">${esc(recap)}</div>
    ${mode}
+   ${R.kind==="att"&&pRngOk(p,P.w)?`<div class="prmode prrng" role="group" aria-label="Distance de tir">${[["Portée normale",0],["Longue −4D",1],["Extrême −8D",2]].map(([l,v])=>`<button class="chip" data-pa="rrng" data-v="${v}" aria-pressed="${(+R.rng||0)===v}">${l}</button>`).join("")}</div>`:""}
    <div class="prrow"><span>Modificateur</span>${pStep2("rmod",R.mod>0?"+"+R.mod:R.mod)}</div>
    ${R.kind!=="init"?"":`<div class="prrow"><span>Ego dépensé <small>(+1D, max 3 · reste ${egoLeft})</small></span>${pStep2("rego",R.ego)}</div>`}
    ${R.kind==="init"||R.kind==="def"||R.kind==="sonic"?"":`<div class="prdifw"><span>Difficulté</span><div class="diffs prdif">${[1,2,3,4,5,6,7,8,9,10].map(d=>`<button class="chip" data-pa="rdiff" data-v="${d}" aria-pressed="${R.diff===d}">${d}</button>`).join("")}</div></div>`}
@@ -396,20 +402,29 @@ function pRollPanel(p,at){
    ${P.cap&&ld<(P.raf||1)?`<div class="ptrw">${ld?"Pas assez de balles pour ce mode.":"Arme vide : recharge avant de tirer."}</div>`:R.kind!=="init"&&R.sonic!==2&&pActLeft(p)!==null&&pActLeft(p)<=0&&!R.res?`<div class="ptrw">${(p.combat||{}).init==null?"Lance d’abord l’Initiative.":"Plus d’action ce round."}</div>`:(R.kind!=="init"&&R.sonic!==2&&pActLeft(p)!==null&&pActLeft(p)<=0)||(R.sonic===2&&R.res)?"":`<button class="roll" data-pa="rgo">LANCER ${split}</button>`}${res}</div>`;
 }
 /* exécute le jet (premier tir ou attaque de Régularité) */
+function pDevView(v){
+  return `<div class="pdev"><span class="pdevi">${IC_GRENADE}</span><div><div class="pdevv"><b>${v.m}</b> m <small>d’écart</small></div><div class="note">${v.ok?`Réussite : 1D − DC = ${v.d[0]} − ${v.dc}${v.d[0]<v.dc?" (minimum 0)":""}`:`Échec : 2D = ${v.d[0]} + ${v.d[1]}`}. Mesuré à partir de la cible visée.</div></div></div>`}
 function pDoRoll(p){
   const R=S.pRoll;if(!R)return;const P=pPlan(p,R);
   const counts=R.kind!=="init"&&R.at!=="spo"&&R.at!=="def:mentale"&&R.sonic!==2&&!R.regul&&p.combat&&p.combat.on;
   if(counts&&pActLeft(p)<=0){toast(p.combat.init==null?"Lance d’abord l’Initiative":"Plus d’action ce round");return}
   if(P.cap&&pLoaded(P.w)<(P.raf||1))return;
+  const gren=R.kind==="att"&&P.w&&pGrenade(P.w);
+  if(gren&&(+P.w.qte||0)<=0){toast("Plus de grenade « "+(P.w.nom||"")+" »");return}
   const egoSpent=R.kind==="init"?R.ego:0;
-  if(egoSpent||P.cap||P.egoInit)pSnap(p,R.label+(R.regul?" (Régularité)":""));
+  if(egoSpent||P.cap||P.egoInit||gren)pSnap(p,R.label+(R.regul?" (Régularité)":""));
   if(P.egoInit&&p.combat)p.combat.egoUsed=true;
-  if(counts){if(!P.cap&&!P.egoInit)pSnap(p,R.label);p.combat.used=(p.combat.used||0)+1}
+  if(counts){if(!P.cap&&!P.egoInit&&!gren)pSnap(p,R.label);p.combat.used=(p.combat.used||0)+1}
   if(egoSpent)p.pistes.ego.v=Math.min(p.pistes.ego.max,p.pistes.ego.v+R.ego);
   if(P.cap)P.w.cur=pLoaded(P.w)-(P.raf||1);
+  if(gren)P.w.qte=(+P.w.qte||0)-1;
   const res=P.dice.map(n=>rollPool(n));
   R.res=res;R.resDiff=R.diff;R.resRaf=P.raf;R.resRafDmg=P.balls;
   if(R.kind==="init"&&p.combat&&p.combat.on){const r=res[0];p.combat.init=r.succ;p.combat.act=1+Math.floor(r.trig/2);p.combat.ego=egoSpent;p.combat.egoUsed=false;p.combat.used=0}
+  /* grenade (propriété Déviation) : réussite → 1D − DC mètres d’écart ; échec → 2D mètres */
+  R.dev=null;
+  if(R.kind==="att"&&P.w&&pGrenade(P.w)&&res[0]){const r=res[0],ok=r.succ>=R.diff,d=[1+rnd(6)];if(!ok)d.push(1+rnd(6));
+    R.dev={ok,d,dc:ok?r.trig:0,m:ok?Math.max(0,d[0]-r.trig):d[0]+d[1]}}
   R.resInfo=R.kind==="att"?[P.cap?`${P.raf||1} balle${(P.raf||1)>1?"s":""} tirée${(P.raf||1)>1?"s":""}`:"",P.raf&&P.cib>1?`rafale de ${P.raf} sur ${P.cib} cibles : ${P.balls.map((b,i)=>`cible ${i+1} ${P.dice[i]}D, ${b} balle${b>1?"s":""} (+${b} dégât${b>1?"s":""})`).join(" · ")}`:P.raf?`rafale de ${P.raf} : +${P.raf}D et +${P.raf} dégâts`:"",R.regul?`Régularité −${2*R.regul}D`:""].filter(Boolean).join(" · "):"";
   if(!R.regul)R.ego=0;
   if(P.cap&&R.raf>pLoaded(P.w)){const m=Math.min(P.rx,pLoaded(P.w));R.raf=m<2?0:m}
@@ -447,10 +462,6 @@ function pCombat(p){
   let h=(c.on?(S.pRoll&&S.pRoll.at==="init"&&S.pRoll.pid===p.id?`<section class="psec"><div class="pst">Round ${c.round} : initiative</div>${pRollPanel(p,"init")}</section>`:""):`<button class="roll pstart" data-pa="cstart">COMMENCER LE COMBAT</button>`)
    +pArmorBlock(p)+pMentalBlock(p)+`<section class="psec"><div class="pst">Condition</div>${P_PISTES.map(([k,l])=>pTrack(p,k,l)).join("")}
    </section>`;
-  /* états temporaires */
-  const et=Array.isArray(p.etats)?p.etats:[];
-  h+=`<section class="psec"><div class="pst">États</div><div class="petats">${P_ETATS.map(([id,l])=>`<button class="chip" data-pa="etat" data-k="${id}" aria-pressed="${et.includes(id)}">${l}</button>`).join("")}</div>
-   ${P_ETATS.filter(([id])=>et.includes(id)).map(([id,l,rt])=>{const r=REGLES.find(x=>x.t===rt);return r?`<details class="card"><summary><span class="t">${l} : la règle</span><span class="ref">${esc(r.ref)}</span></summary><div class="body">${r.h}</div></details>`:""}).join("")}</section>`;
   /* défense et autres actions */
   const al=pActLeft(p),dis=pActDis(p);
   h+=`<section class="psec"><div class="pst">Défense et autres actions</div>
@@ -464,10 +475,10 @@ function pCombat(p){
     const stock=am.reduce((s,m)=>({c:s.c+(+m.chargeurs||0),b:s.b+(+m.balles||0)}),{c:0,b:0});
     return `<div class="pwpn"><div class="pwh"><span class="pwn">${esc(w.nom||"Arme")}</span>${va?`<span class="pwva">${va.v}D</span>`:""}</div>
      <div class="pil">${esc([w.deg&&"Dégâts "+w.deg,w.portee&&"Portée "+w.portee,va?va.t:pSonic(w)?"INT + Technologie, puis PSY + Domination":(w.comp?w.comp+" (compétence non reconnue)":"Compétence d’attaque à renseigner")].filter(Boolean).join(" · "))}</div>
-     ${w.prop?`<div class="pil pml">${esc(w.prop)}</div>`:""}
+     ${w.prop?`<div class="pil pml">${esc(w.prop)}</div>`:""}${pGrenade(w)?`<div class="pammo pgren">${(+w.qte||0)>0?`<span class="pgi">${Array.from({length:Math.min(+w.qte||0,12)},()=>IC_GRENADE).join("")}</span>`:`<span class="pil">Plus de grenade</span>`}<span class="pamt">${+w.qte||0}</span></div>`:""}
      ${cap?`<div class="pammo">${trackBoxes(cap,ld,"ammo")}<span class="pamt">${ld}/${cap}</span></div>
        <div class="pil">${w.cal?`Réserve ${esc(w.cal)} : ${stock.b} balle${stock.b>1?"s":""}${stock.c?` (${stock.c} chargeur${stock.c>1?"s":""})`:""}`:"Indique le calibre de l’arme dans l’Inventaire pour recharger depuis la réserve."}</div>`:""}
-     <div class="btnrow"><button class="btn red pib" data-pa="attack" data-k="${i}"${pActDis(p)}>${pSonic(w)?IC_SONIC:pRanged(p,w)?IC_BALL:IC_KNIFE}Attaquer</button>${pMelee(p,w)?`<button class="btn pib" data-pa="wparry" data-k="${i}"${pActDis(p)}>${IC_PARRY}Parer</button>`:""}${cap?`<button class="btn" data-pa="reload" data-k="${i}"${ld>=cap?" disabled":""}>Recharger</button>`:""}</div>${pRollPanel(p,"w:"+i)}${pRollPanel(p,"wp:"+i)}</div>`}).join(""):`<p class="pnone">Aucune arme. Ajoute-les dans l’Inventaire.</p>`}</section>`;
+     <div class="btnrow"><button class="btn red pib" data-pa="attack" data-k="${i}"${pActDis(p)||(pGrenade(w)&&(+w.qte||0)<=0?" disabled":"")}>${pSonic(w)?IC_SONIC:pGrenade(w)?IC_GRENADE:pRanged(p,w)?IC_BALL:IC_KNIFE}${pGrenade(w)?"Lancer":"Attaquer"}</button>${pMelee(p,w)?`<button class="btn pib" data-pa="wparry" data-k="${i}"${pActDis(p)}>${IC_PARRY}Parer</button>`:""}${cap?`<button class="btn" data-pa="reload" data-k="${i}"${ld>=cap?" disabled":""}>Recharger</button>`:""}</div>${pRollPanel(p,"w:"+i)}${pRollPanel(p,"wp:"+i)}</div>`}).join(""):`<p class="pnone">Aucune arme. Ajoute-les dans l’Inventaire.</p>`}</section>`;
   /* à portée de main */
   const cons=p.equip.map((x,i)=>[x,i]).filter(([x])=>x.combat);
   h+=`<section class="psec"><div class="pst">À portée de main</div>${cons.length?cons.map(([x,i])=>`<div class="pcons"><div class="pih"><span class="pin2">${esc(x.nom||"—")}</span><span class="pq${(+x.qte||0)<=0?" low":""}">${pStep("equip."+i+".qte",+x.qte||0)}</span><button class="btn sm red" data-pa="use" data-k="${i}"${(+x.qte||0)<=0?" disabled":""}>Utiliser</button></div>${x.effet?`<div class="pil">${esc(x.effet)}</div>`:""}</div>`).join(""):`<p class="pnone">Coche « À portée de main en combat » sur un objet de l’Inventaire pour le retrouver ici.</p>`}</section>`;
@@ -503,7 +514,6 @@ function pCombatAction(act,a,p){
       pOpenRoll(p,"spo",{kind:"sk",label:"Résister à l’Amorce",calc:`Psyché ${A("PSY")} + ${c} ${K(c)}`,base:A("PSY")+K(c),diff:Math.min(10,ex)});return true}
     case "armor":{const x=p.armures[+k];if(x){pSnap(p,(x.porte===false?"Porter ":"Ranger ")+(x.nom||"armure"));x.porte=x.porte===false}return true}
     case "egomax":pSnap(p,"Ego au maximum");p.pistes.ego.v=0;return true;
-    case "etat":{if(!Array.isArray(p.etats))p.etats=[];pSnap(p,"État");const i=p.etats.indexOf(k);if(i>=0)p.etats.splice(i,1);else p.etats.push(k);return true}
     case "cstart":pSnap(p,"Commencer le combat");p.combat={on:true,round:1,init:null,act:null,ego:0};pOpenRoll(p,"init",pInitOpts(p));window.scrollTo(0,0);return true;
     case "cnext":{const c=p.combat;if(!c||!c.on)return true;pSnap(p,"Round suivant");c.round++;c.init=null;c.act=null;c.ego=0;c.used=0;S.pOther=false;pOpenRoll(p,"init",pInitOpts(p));window.scrollTo(0,0);return true}
     case "attack":{const w=p.armes[+k];
@@ -525,6 +535,7 @@ function pCombatAction(act,a,p){
       Object.assign(R,{sonic:2,res:null,mod:0,ego:0,base:A+T,calc:`PSY ${A} + Domination ${T}`,label:"Attaque sonique · "+(p.armes[R.w].nom||"arme")+" · Domination"});return true}
     case "rgo":if(S.pRoll){S.pRoll.regul=0;S.pRoll.chain=[];pDoRoll(p);S._pShowRes=true}return true;
     case "rregul":if(S.pRoll){S._pShowRes=true;const R=S.pRoll;if(R.res)(R.chain=R.chain||[]).push({n:(R.regul||0)+1,res:R.res,diff:R.resDiff,rafDmg:R.resRafDmg||0});S.pRoll.regul=(S.pRoll.regul||0)+1;S.pRoll.raf=Math.min(S.pRoll.raf,S.pRoll.resRaf||0);pDoRoll(p)}return true;
+    case "rrng":{const R=S.pRoll;if(!R)return true;R.rng=+a.dataset.v||0;R.res=null;R.regul=0;return true}
     case "rraf":{const R=S.pRoll;if(!R)return true;R.raf=+a.dataset.v||0;R.cib=Math.min(R.cib||1,R.raf||1);R.res=null;R.regul=0;return true}
     case "reload":{const w=p.armes[+k],cap=pCap(w),ld=pLoaded(w);if(ld>=cap)return true;
       const am=pAmmoFor(p,w);if(!w.cal||!am.length){toast(w.cal?"Aucune munition « "+w.cal+" » dans l’Inventaire":"Calibre de l’arme non renseigné");return true}
@@ -611,12 +622,12 @@ function pInv(p){
       const nm=(key==="armes"||key==="armures")?Math.max(0,Math.min(12,Math.floor(nb(x.empl)))):0,mods=Array.isArray(x.mods)?x.mods:[];
       const modsEd=nm?`<div class="plbl wide">Mods (${nm} emplacement${nm>1?"s":""})</div>${Array.from({length:nm},(_,j)=>pIn(base+".mods."+j,mods[j]||"","Mod "+(j+1))).join("")}`:"";
       const modsRd=mods.slice(0,nm).filter(m=>m&&String(m).trim());
-      const okey=p.id+":"+base,Lf=L.f.filter(([f])=>!(key==="armes"&&f==="cur"&&!pCap(x)));
+      const okey=p.id+":"+base,Lf=L.f.filter(([f])=>!(key==="armes"&&f==="cur"&&!pCap(x))&&!(key==="armes"&&f==="qte"&&!pGrenade(x)));
       if(E&&!(S.pOpen||{})[okey]){const sum=pItemLine(key,x).concat(nm?[nm+" mod"+(nm>1?"s":"")]:[]);const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur")).map(([f,l])=>(key==="mun"?(f==="chargeurs"?"charg. ":"balles "):"×")+pQtyShow(p,key,f,x));
-        return `<button class="pitem pcol" data-pa="itemopen" data-k="${okey}"><span class="pcoln"><span class="pin2">${esc(x.nom||"Sans nom")}</span>${sum.length||q.length?`<small>${esc(q.concat(sum).join(" · "))}</small>`:""}</span><span class="pcolm">Modifier ›</span></button>`}
+        const cf=S.pConf==="del:"+base;return `<div class="pitem pcol pcw"><button class="pcopen" data-pa="itemopen" data-k="${okey}"><span class="pcoln"><span class="pin2">${esc(x.nom||"Sans nom")}</span>${sum.length||q.length?`<small>${esc(q.concat(sum).join(" · "))}</small>`:""}</span><span class="pcolm">Modifier ›</span></button><button class="pdelx${cf?" on":""}" data-pa="conf" data-k="del:${base}" aria-label="Retirer ${esc(x.nom||"")}" title="Retirer">${cf?"Retirer ?":'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>'}</button></div>`}
       if(E)return `<div class="pitem ed"><button class="btn sm pfold" data-pa="itemopen" data-k="${okey}">‹ Replier ${esc(x.nom||"")}</button><div class="pgrid">${Lf.map(([f,l,t])=>t==="b"?`<label class="pchk"><input type="checkbox" data-pf="${base}.${f}"${x[f]?" checked":""}> ${l}</label>`:t==="n"?`<label class="pl"><span>${l}</span>${pStep(base+"."+f,pQtyShow(p,key,f,x))}</label>`:`<label class="pl${f==="nom"||f==="prop"||f==="effet"||f==="fonc"?" wide":""}"><span>${l}</span>${f==="prop"||f==="effet"||f==="fonc"?pTa(base+"."+f,x[f]||""):pIn(base+"."+f,x[f]||"")}</label>`).join("")}</div>${modsEd?`<div class="pmods">${modsEd}</div>`:""}<div class="btnrow">${pConfBtn("del:"+base,"Retirer","sm")}</div></div>`;
       const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur"));const det=key==="mun"?[]:Lf.filter(([f,,t])=>f!=="nom"&&t!=="n"&&t!=="b"&&x[f]);
-      return `<div class="pitem ${key}"><div class="pih${key==="mun"?" mun":""}"><span class="pin2">${esc(x.nom||"—")}</span>${q.map(([f,l])=>`<span class="pq${pQtyShow(p,key,f,x)<=0?" low":""}" title="${l}">${pStep(base+"."+f,pQtyShow(p,key,f,x))}<small>${key==="mun"?(f==="chargeurs"?"charg.":"balles au total"):key==="armes"?"/ "+pCap(x)+" dans l’arme":""}</small></span>`).join("")}</div>${pItemLine(key,x).length||modsRd.length||nm?`<div class="pchips">${pItemLine(key,x).map(t=>`<span>${esc(t)}</span>`).join("")}${modsRd.map(m=>`<span class="mod">Mod · ${esc(m)}</span>`).join("")}${!modsRd.length&&nm?`<span class="mod libre">${nm} emplacement${nm>1?"s":""} de mod libre${nm>1?"s":""}</span>`:""}</div>`:""}${det.length?`<details class="pdet"><summary>Détails</summary><dl class="statl">${det.map(([f,l])=>`<dt>${l}</dt><dd>${esc(x[f])}</dd>`).join("")}</dl></details>`:""}</div>`}).join("");
+      return `<div class="pitem ${key}"><div class="pih${key==="mun"?" mun":""}"><span class="pin2">${esc(x.nom||"—")}</span>${q.map(([f,l])=>`<span class="pq${pQtyShow(p,key,f,x)<=0?" low":""}" title="${l}">${pStep(base+"."+f,pQtyShow(p,key,f,x))}<small>${key==="mun"?(f==="chargeurs"?"charg.":"balles au total"):key==="armes"?(f==="qte"?"":"/ "+pCap(x)+" dans l’arme"):""}</small></span>`).join("")}</div>${pItemLine(key,x).length||modsRd.length||nm?`<div class="pchips">${pItemLine(key,x).map(t=>`<span>${esc(t)}</span>`).join("")}${modsRd.map(m=>`<span class="mod">Mod · ${esc(m)}</span>`).join("")}${!modsRd.length&&nm?`<span class="mod libre">${nm} emplacement${nm>1?"s":""} de mod libre${nm>1?"s":""}</span>`:""}</div>`:""}${det.length?`<details class="pdet"><summary>Détails</summary><dl class="statl">${det.map(([f,l])=>`<dt>${l}</dt><dd>${esc(x[f])}</dd>`).join("")}</dl></details>`:""}</div>`}).join("");
     const bz=S.pBz&&S.pBz.list===key?pBzPanel(key):"";
     h+=`<section class="psec pinvs ${key}"><div class="pst"><span class="psti">${P_LIC[key]||""}</span>${L.t}</div>${rows||`<p class="pnone">Rien pour l’instant.</p>`}${E?`<div class="btnrow"><button class="btn sm" data-pa="add" data-k="${key}">+ Ajouter</button><button class="btn sm${bz?" red":""}" data-pa="bz" data-k="${key}">${bz?"Fermer le Bazar":"+ Depuis le Bazar"}</button></div>${bz}`:""}</section>`;
   });

@@ -1,4 +1,4 @@
-/* Fiches de règles (version joueur) — copie filtrée par l'Admin du Codex. Refaite par _outils/codex-joueur.js build. */
+/* Fiches de règles (version joueur) — copie filtrée par l'Admin du Codex. Refaite par l'Admin (Enregistrer). */
 window.REGLES = [
 /* ───────────── BASES ───────────── */
 {cat:"Bases", t:"Valeur d’action et jet de dés", ref:"K p.18", tags:"VA jet dés succès 12", h:`<p><b>VA = Attribut + Compétence ± modificateurs</b> (toujours exprimés en dés : +2D, -3D).</p>
@@ -134,23 +134,13 @@ window.REGLES = [
 <table><tr><th>Matériau</th><th>Armure</th><th>Structure / 10 cm</th></tr>
 <tr><td>Titane, fibres de carbone</td><td>7</td><td>20</td></tr><tr><td>Acier</td><td>6</td><td>15</td></tr><tr><td>Métal, fibre de verre</td><td>5</td><td>15</td></tr>
 <tr><td>Béton, bois dur</td><td>4</td><td>10</td></tr><tr><td>Plastique</td><td>3</td><td>10</td></tr><tr><td>Bois tendre</td><td>2</td><td>5</td></tr><tr><td>Briques</td><td>1</td><td>5</td></tr></table>`},
-{cat:"Manœuvres", t:"Silence mortel (attaque furtive)", ref:"A p.73", tags:"assassinat furtif sournois", h:`<ul><li>Confrontation <b>AGI+Furtivité</b> contre <b>INS+Perception</b> de la cible (-2D si elle ne surveille pas).</li>
-<li>Les DC de l’attaquant sont reportés sur son jet d’attaque contre la Défense passive.</li>
-<li>Si l’attaque réussit : tous ses DC sont infligés <b>directement en Traumatismes</b>, sans armure.</li></ul>`},
 {cat:"Manœuvres", t:"Avantage du terrain", ref:"A p.72", tags:"environnement point faible terrain", h:"<p>1 action pour examiner les lieux, puis combinaison <b>INS+Perception</b> et <b>INT+Technologie</b> (difficulté MJ : 1-2 pour une poutre évidente, 4+ pour un court-circuit). Les DC sont gardés pour exploiter la faiblesse (plus de dégâts, plus de cibles).</p>"},
-{cat:"Manœuvres", t:"Fuite et moral", ref:"A p.73", tags:"fuite moral reddition", h:`<p>Jet de <b>PSY+Foi/Volonté</b> (ou INS+Pulsions si plus haut). Échec : le personnage se rend ou fuit. Un allié peut le ramener avec CHA+Commandement contre sa PSY+Foi/Volonté.</p>
-<p>Déclencheurs : première arme létale dégainée, première giclée de sang ou premier Traumatisme d’un allié, première mort, mort du chef.</p>
-<table><tr><th>Facteur</th><th>Diff.</th></tr><tr><td>Base</td><td>1</td></tr><tr><td>Infériorité numérique</td><td>+1</td></tr><tr><td>À 2 contre 1</td><td>+2</td></tr><tr><td>Blessé</td><td>+1</td></tr><tr><td>Armes létales</td><td>+1</td></tr><tr><td>Camarade mort</td><td>+1 / mort</td></tr><tr><td>Pris de flanc</td><td>+2</td></tr><tr><td>Encerclé</td><td>-1</td></tr><tr><td>Ennemi haï</td><td>-1</td></tr><tr><td>Protège sa famille</td><td>-3</td></tr><tr><td>Protège son foyer</td><td>-1</td></tr><tr><td>Nulle part où aller</td><td>-2</td></tr><tr><td>Combat pour une cause</td><td>-2</td></tr></table>
-<p>Intimider : 1 action, PSY+Domination contre Défense mentale (+1D par jet de fuite déjà fait). Réussite : nouveau jet de fuite à -2D.</p>`},
 {cat:"Manœuvres", t:"Poursuite", ref:"A p.74", tags:"poursuite course", h:`<ul><li>Jets opposés de <b>PHY+Athlétisme</b> ; on cumule les succès (<b>DC comptent double</b>).</li>
 <li>Tous les 3 jets : PHY+Vigueur (4), échec = -2D aux jets d’Athlétisme. Jusqu’à 2 Égo pour +1D chacun.</li>
 <li>Dès que l’écart atteint <b>5</b>, le camp en tête gagne.</li></ul>`},
 {cat:"Manœuvres", t:"Feinte, provocation, surnombre", ref:"A p.75", tags:"feinte provocation surnombre", h:`<p><b>Feinte</b> : 1 action, PSY+Ruse contre Défense mentale. Réussite : chaque DC = -1D à la prochaine Défense active de la cible. Échec : pas de Défense active contre sa prochaine attaque, ses DC comptent double en dégâts.</p>
 <p><b>Provocation</b> : PSY+Ruse et CHA+Art combinés contre Défense mentale (ou INT+Concentration). Réussite : la cible ne peut attaquer que le provocateur pendant (DC) rounds.</p>
 <p><b>Surnombre</b> : +1D par allié ciblant le même adversaire, max +3D.</p>`},
-{cat:"Manœuvres", t:"Désarmer, temporiser, assommer", ref:"A p.74-75", tags:"désarmer retarder assommer", h:`<p><b>Désarmer</b> : attaque ciblée sur l’arme ; DC = mètres parcourus par l’arme. Résister : PHY+Force avec DC ≥ ceux de l’attaquant. Armes Fragiles/Sensibles : 2 DC au contact, 4 à distance pour ne pas les briser.</p>
-<p><b>Temporiser</b> : une action peut être déclarée à son Initiative puis jouée plus tard, avant le prochain tour. Elle s’exécute avant l’action qu’elle interrompt.</p>
-<p><b>Assommer</b> : poings et armes anesthésiantes frappent l’Égo ; à 0 par dégâts, la cible s’évanouit.</p>`},
 /* ───────────── PROGRESSION ───────────── */
 {cat:"Progression", t:"Expérience", ref:"K p.96, 324", tags:"xp expérience progression", h:`<p><b>Gains</b> : survivre à une scène clé +1 ; but de l’aventure atteint +2 ; scène exceptionnellement réussie (tous) +1 ; performance individuelle +1 ; fin de campagne : nb d’aventures × 2.</p>
 <p><b>Coûts</b> : attribut = nouvelle valeur × 12 XP (10 si privilégié) ; compétence = nouvelle valeur × 12 XP (10 si privilégiée) ; Potentiel = (somme des Potentiels + 1) × 10 XP.</p>
