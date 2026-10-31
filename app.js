@@ -633,7 +633,9 @@ const pStep2=(k,v)=>`<span class="pstep"><button data-pa="rstep" data-k="${k}" d
 const SHIELD='<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 5.5l15 5.5v12.5c0 9.6-6.2 16.8-15 20.5C15.2 40.3 9 33.1 9 23.5V11z"/><path class="ac" d="M16 19.5l8 4.5 8-4.5M16 27l8 4.5 8-4.5"/></svg>';
 /* Bloc armure : armures de l’Inventaire (portées par défaut), total des valeurs numériques, propriétés et mods */
 const BRAIN='<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g><path d="M24 9.5C21.5 7 17 7.2 15 10C11.5 10 9 13 10 16.2C7.5 17.6 7 21.2 9 23.2C7.5 25.6 8.4 29 11 30.2C11 33.6 14 36 17.4 35.4C19 37.4 22 38.4 24 36.8Z"/><path class="ac" d="M15.5 16.5c2.2.2 3.8 1.6 4.2 3.6M12.5 24c2.8 0 4.8 1.2 5.8 3.2M18 31c1.6-.2 3 .4 3.8 1.6"/></g><g transform="matrix(-1 0 0 1 48 0)"><path d="M24 9.5C21.5 7 17 7.2 15 10C11.5 10 9 13 10 16.2C7.5 17.6 7 21.2 9 23.2C7.5 25.6 8.4 29 11 30.2C11 33.6 14 36 17.4 35.4C19 37.4 22 38.4 24 36.8Z"/><path class="ac" d="M15.5 16.5c2.2.2 3.8 1.6 4.2 3.6M12.5 24c2.8 0 4.8 1.2 5.8 3.2M18 31c1.6-.2 3 .4 3.8 1.6"/></g></svg>';
-const pMental=p=>{const A=+p.a.PSY||0,K=x=>+p.k[x]||0,c=K("Volonté")>K("Foi")?"Volonté":"Foi";return {c,v:A+K(c),t:`PSY ${A} + ${c} ${K(c)}`}};
+/* Héritage Doué : tous les jets de Défense mentale subissent un malus de −2D */
+const pDoue=p=>(p.her||[]).some(h=>/^doue(\s|\(|$)/.test(norm(String(h||"")).trim()));
+const pMental=p=>{const A=+p.a.PSY||0,K=x=>+p.k[x]||0,c=K("Volonté")>K("Foi")?"Volonté":"Foi",d=pDoue(p)?2:0;return {c,d,v:Math.max(0,A+K(c)-d),t:`PSY ${A} + ${c} ${K(c)}`+(d?" − 2 (Doué)":"")}};
 /* Défense mentale (Katharsys) : PSY + Foi ou Volonté, contre les influences mentales (Domination, Commandement…) */
 function pMentalBlock(p){const M=pMental(p);
   return `<section class="psec parm pment"><div class="pst">Défense mentale</div>
@@ -744,7 +746,7 @@ function pCombatAction(act,a,p){
       if(pSonic(w)){const A=+p.a.INT||0,T=+p.k.Technologie||0;pOpenRoll(p,"w:"+k,{kind:"sonic",sonic:1,w:+k,label:"Attaque sonique · "+(w.nom||"arme")+" · réglage",calc:`INT ${A} + Technologie ${T}`,base:A+T,diff:1});return true}
       const va=pWV(p,w);pOpenRoll(p,"w:"+k,{kind:"att",w:+k,label:"Attaque · "+(w.nom||"arme"),calc:va?va.t:"Compétence non reconnue : règle avec le modificateur",base:va?va.v:0});return true}
     case "defroll":{const D={parade:["PHY","Lutte","Parade"],esquive:["AGI","Mobilité","Esquive"],mentale:["PSY",pMental(p).c,"Défense mentale"]}[k];if(!D)return true;S.pOther=false;
-      pOpenRoll(p,"def:"+k,{kind:"def",label:D[2],calc:`${P_ATTR.find(x=>x[0]===D[0])[1]} ${+p.a[D[0]]||0} + ${D[1]} ${+p.k[D[1]]||0}`,base:(+p.a[D[0]]||0)+(+p.k[D[1]]||0)});return true}
+      const dm=k==="mentale"&&pDoue(p)?2:0;pOpenRoll(p,"def:"+k,{kind:"def",label:D[2],calc:`${P_ATTR.find(x=>x[0]===D[0])[1]} ${+p.a[D[0]]||0} + ${D[1]} ${+p.k[D[1]]||0}`+(dm?" − 2 (Doué)":""),base:Math.max(0,(+p.a[D[0]]||0)+(+p.k[D[1]]||0)-dm)});return true}
     case "wparry":{const w=p.armes[+k];pOpenRoll(p,"wp:"+k,{kind:"def",label:"Parade · "+(w.nom||"arme"),calc:`Physique ${+p.a.PHY||0} + Corps à corps ${+p.k["Corps à corps"]||0}`+pManTxt(pMan(w)),base:Math.max(0,(+p.a.PHY||0)+(+p.k["Corps à corps"]||0)+pMan(w))});return true}
     case "other":S.pOther=!S.pOther;if(!S.pOther&&S.pRoll&&S.pRoll.at==="def:autre")S.pRoll=null;return true;
     case "skroll":{const at=a.dataset.v,A=P_ATTR.find(x=>x[0]===at);pOpenRoll(p,"k:"+k,{kind:"sk",label:A[1]+" + "+k,calc:`${A[1]} ${+p.a[at]||0} + ${k} ${+p.k[k]||0}`,base:(+p.a[at]||0)+(+p.k[k]||0)});return true}
