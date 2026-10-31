@@ -430,9 +430,6 @@ details.card.ppotc{border-left:3px solid var(--red)}
 
 /* Onglet Combat : habillage « HUD compact » (retour possible : étiquette git avant-hud, copie dans _outils/avant-hud) */
 .pcmb .psec{background:linear-gradient(180deg,#131313,#0d0d0d)!important;border:0!important;border-top:2px solid #e0213a!important;padding:12px!important;gap:10px;position:relative}
-.pcmb .psec::before{content:"";position:absolute;left:50%;bottom:-3px;width:31%;height:3px;transform:translateX(-50%);background:#e0213a}
-.pcmb .psec::after{content:"";position:absolute;left:50%;bottom:-10px;width:0;height:0;transform:translateX(-50%);border-left:7px solid transparent;border-right:7px solid transparent;border-top:7px solid #e0213a}
-.pcmb .psec{margin-bottom:10px}
 .pcmb .pst{background:none!important;border:0!important;margin:-4px 0 2px!important;padding:0!important;font-size:13px!important;letter-spacing:.26em!important;color:#9a9a9a!important;display:flex;align-items:center;gap:10px}
 .pcmb .pst::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#333,transparent)}
 .pcmb .psec:has(.ptrk){display:grid!important;grid-template-columns:1fr 1fr;gap:8px}
