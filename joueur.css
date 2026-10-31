@@ -465,3 +465,6 @@ details.card.ppotc{border-left:3px solid var(--red)}
 .pcmb .ppl{font-size:13px}
 @media (max-width:340px){.pcmb .ptrh{gap:6px!important}.pcmb .ptrh .ptrl{font-size:11.5px!important;letter-spacing:.02em!important}.pcmb .ptrh .ptrv{font-size:20px!important}.pcmb .ptrh .ptrv small{font-size:12px}}
 @media (max-width:340px){.pcmb .tbx:not(.ammo){grid-template-columns:repeat(auto-fill,minmax(6px,8px))}}
+/* Combat : fond des blocs un peu plus gris */
+.pcmb .psec{background:linear-gradient(180deg,#1d1d1d,#171717)!important;border-top-color:#e0213a!important}
+.pcmb .ptrk,.pcmb .pwpn{background:#121212!important}
