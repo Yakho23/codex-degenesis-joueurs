@@ -578,5 +578,130 @@ window.PRETIRES = [
   ],
   "artef": [],
   "portrait": "assets/pretires/sparkle.jpg"
+ },
+ {
+  "nom": "Alexia Stassen",
+  "age": "28",
+  "rang": "3 : Famulancier",
+  "xp": "",
+  "sexe": "Féminin",
+  "taille": "1 m 71",
+  "poids": "65 kg",
+  "lc": "300",
+  "culture": "Borca",
+  "concept": "Le Soigneur",
+  "culte": "Spitaliers",
+  "her": [
+   "",
+   "",
+   ""
+  ],
+  "a": {
+   "PHY": 3,
+   "AGI": 3,
+   "CHA": 2,
+   "INT": 3,
+   "PSY": 3,
+   "INS": 2
+  },
+  "k": {
+   "Corps à corps": 2,
+   "Force": 2,
+   "Résistance": 3,
+   "Vigueur": 1,
+   "Armes à projectiles": 2,
+   "Mobilité": 2,
+   "Considération": 1,
+   "Négociation": 2,
+   "Concentration": 2,
+   "Médecine": 3,
+   "Science": 1,
+   "Réactivité": 2,
+   "Tromperie": 1,
+   "Volonté": 2,
+   "Perception": 3
+  },
+  "o": {
+   "Alliés": 1,
+   "Réseau": 1,
+   "Secrets": 2
+  },
+  "pots": [
+   {
+    "n": "Dilacérateur",
+    "lvl": 1
+   }
+  ],
+  "pistes": {
+   "ego": {
+    "max": 10,
+    "v": 0
+   },
+   "spo": {
+    "max": 10,
+    "v": 0,
+    "perm": 0
+   },
+   "bles": {
+    "max": 12,
+    "v": 0
+   },
+   "trau": {
+    "max": 6,
+    "v": 0
+   }
+  },
+  "armes": [
+   {
+    "nom": "Dilacérateur",
+    "comp": "PHY+CORPS À CORPS",
+    "man": "-1D",
+    "portee": "2",
+    "deg": "4+F/3",
+    "charg": "",
+    "cal": "",
+    "prop": "Lacération (2DC, +1D dégâts)",
+    "enc": "3",
+    "tech": "IV",
+    "empl": "2",
+    "cat": "Corps à corps"
+   }
+  ],
+  "armures": [
+   {
+    "nom": "Combinaison Spitalière",
+    "va": "2",
+    "prop": "Hermétique (+4S), Respecté (Patients, +1D)",
+    "enc": "2",
+    "tech": "III",
+    "empl": "2"
+   }
+  ],
+  "equip": [
+   {
+    "nom": "Le manuel",
+    "qte": 1,
+    "enc": "",
+    "effet": "",
+    "combat": false
+   },
+   {
+    "nom": "Irritant",
+    "qte": 1,
+    "enc": "",
+    "effet": "Empoisonné (5, -3D, récupération +1D par round)",
+    "combat": false
+   },
+   {
+    "nom": "Poussière de feu",
+    "qte": 1,
+    "enc": "",
+    "effet": "Crée dégâts de feu comme le calcinateur (8)",
+    "combat": false
+   }
+  ],
+  "mun": [],
+  "artef": [],
+  "portrait": "assets/pretires/alexiastassen.jpg"
  }
 ];
