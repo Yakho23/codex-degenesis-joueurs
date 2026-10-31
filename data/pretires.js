@@ -453,5 +453,130 @@ window.PRETIRES = [
   "mun": [],
   "artef": [],
   "portrait": "assets/pretires/fraktal.jpg"
+ },
+ {
+  "nom": "Sparkle",
+  "age": "19",
+  "rang": "3 : Mécanicien",
+  "xp": "",
+  "sexe": "Féminin",
+  "taille": "1 m 67",
+  "poids": "58 kg",
+  "lc": "250",
+  "culture": "Hybrispanie",
+  "concept": "Le Créateur",
+  "culte": "Ferrailleurs",
+  "her": [
+   "",
+   "",
+   ""
+  ],
+  "a": {
+   "PHY": 2,
+   "AGI": 4,
+   "CHA": 1,
+   "INT": 4,
+   "PSY": 2,
+   "INS": 3
+  },
+  "k": {
+   "Force": 2,
+   "Lutte": 1,
+   "Résistance": 3,
+   "Armes à projectiles": 2,
+   "Artisanat": 3,
+   "Dextérité": 1,
+   "Mobilité": 1,
+   "Concentration": 2,
+   "Conn. des artefacts": 2,
+   "Science": 1,
+   "Technologie": 2,
+   "Réactivité": 1,
+   "Volonté": 2,
+   "Perception": 2,
+   "Survie": 3
+  },
+  "o": {
+   "Réseau": 2,
+   "Ressources": 2
+  },
+  "pots": [
+   {
+    "n": "Cochon truffier",
+    "lvl": 1
+   }
+  ],
+  "pistes": {
+   "ego": {
+    "max": 12,
+    "v": 0
+   },
+   "spo": {
+    "max": 8,
+    "v": 0,
+    "perm": 0
+   },
+   "bles": {
+    "max": 10,
+    "v": 0
+   },
+   "trau": {
+    "max": 4,
+    "v": 0
+   }
+  },
+  "armes": [
+   {
+    "nom": "Carabine",
+    "comp": "AGI+ARMES À PROJECTILES",
+    "man": "–",
+    "portee": "30 /120",
+    "deg": "6",
+    "charg": "4",
+    "cal": ".357",
+    "prop": "",
+    "enc": "2",
+    "tech": "IV",
+    "empl": "2",
+    "cat": "Fusils",
+    "cur": 4
+   }
+  ],
+  "armures": [
+   {
+    "nom": "Tunique",
+    "va": "1",
+    "prop": "",
+    "enc": "",
+    "tech": "",
+    "empl": ""
+   }
+  ],
+  "equip": [
+   {
+    "nom": "Trousse à outils (niv. 1)",
+    "qte": 1,
+    "enc": "2",
+    "effet": "AGI+Artisanat et AGI+Dextérité : +1D",
+    "combat": false
+   },
+   {
+    "nom": "Ferraille",
+    "qte": 1,
+    "enc": "",
+    "effet": "",
+    "combat": false
+   }
+  ],
+  "mun": [
+   {
+    "nom": ".357",
+    "chargeurs": 0,
+    "balles": 15,
+    "deg": "6"
+   }
+  ],
+  "artef": [],
+  "portrait": "assets/pretires/sparkle.jpg"
  }
 ];
