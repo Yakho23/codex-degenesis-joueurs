@@ -178,11 +178,15 @@ function pBlank(){return {id:uid(),v:1,cree:Date.now(),maj:Date.now(),arch:false
   nom:"",age:"",rang:"",xp:"",sexe:"",taille:"",poids:"",lc:"",culture:"",concept:"",culte:"",her:["","",""],
   a:{},priv:{},k:{},o:{},pots:[],stats:{init:"",defm:"",armure:""},modif:"",compl:"",
   pistes:{ego:{max:24,v:0},spo:{max:24,v:0},bles:{max:24,v:0},trau:{max:12,v:0}},
-  armes:[],armures:[],mun:[],equip:[],artef:[],mods:"",notes:""}}
+  armes:[],armures:[],mun:[],equip:[],artef:[],mods:"",notes:"",journal:[],brouillon:""}}
 function pNorm(x){const b=pBlank(),p=Object.assign(b,x||{});
   ["a","priv","k","o","stats","pistes"].forEach(k=>{if(typeof p[k]!=="object"||!p[k]||Array.isArray(p[k]))p[k]=b[k]});
   ["her","pots","armes","armures","mun","equip","artef","etats"].forEach(k=>{if(!Array.isArray(p[k]))p[k]=[]});
   while(p.her.length<3)p.her.push("");
+  if(!Array.isArray(p.journal))p.journal=[];
+  if(typeof p.brouillon!=="string")p.brouillon="";
+  /* ancien champ « Notes » libre : devient la première note du journal */
+  if(typeof p.notes==="string"&&p.notes.trim()){p.journal.push({id:uid(),t:+p.maj||+p.cree||Date.now(),tx:p.notes.trim()});p.notes=""}
   p.armes.forEach(w=>{if(w&&/d[ée]viation/i.test(String(w.prop||""))&&w.qte==null)w.qte=1}); /* grenades déjà présentes : 1 en stock */
   P_PISTES.forEach(([k,,m])=>{const t=p.pistes[k];p.pistes[k]={max:Math.max(1,Math.min(60,+(t&&t.max)||m)),v:Math.max(0,+(t&&t.v)||0)};if(k==="spo")p.pistes[k].perm=Math.max(0,+(t&&t.perm)||0)});
   return p}
@@ -877,8 +881,38 @@ function pBzPanel(key){
   return `<div class="pbz"><label class="search">${I.search}<input id="pbzq" data-pbzq="1" type="search" placeholder="Chercher dans le Bazar…" value="${esc(S.pBz.q)}" autocomplete="off"></label>
    ${res.map(r=>`<button class="pbzr" data-pa="bzadd" data-k="${key}" data-v="${BAZAR.indexOf(r)}"><span>${esc(r.Nom)}</span><small>${esc(r._cat)}${r.Culte?" · "+esc(r.Culte):""}</small></button>`).join("")||`<p class="pnone">Rien trouvé.</p>`}</div>`;
 }
-function pNotes(p){return `<section class="psec"><div class="pst">Notes</div>${pTa("notes",p.notes,"Indices, PNJ rencontrés, objectifs…")}<p class="note">Tes notes restent sur ce téléphone : elles ne seront jamais envoyées au MJ.</p></section>`}
-
+/* ───── Notes : journal daté + mise en forme légère (**gras**, *italique*, ~~barré~~, # titre, - liste, > citation) ───── */
+function nmd(t){const il=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g,"$1<i>$2</i>").replace(/~~(.+?)~~/g,"<s>$1</s>");
+  let h="",ul=false;const close=()=>{if(ul){h+="</ul>";ul=false}};
+  String(t||"").split("\n").forEach(l=>{let m;
+    if(m=l.match(/^\s*[-•]\s+(.*)$/)){if(!ul){h+="<ul>";ul=true}h+=`<li>${il(m[1])}</li>`;return}
+    close();
+    if(m=l.match(/^#{1,3}\s+(.*)$/))h+=`<h4>${il(m[1])}</h4>`;
+    else if(m=l.match(/^>\s?(.*)$/))h+=`<blockquote>${il(m[1])}</blockquote>`;
+    else if(!l.trim())h+='<div class="nsp"></div>';
+    else h+=`<p>${il(l)}</p>`});
+  close();return h}
+const nDay=t=>new Date(t).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+const nHour=t=>new Date(t).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+const N_TOOLS=[["b","<b>G</b>","Gras"],["i","<i>I</i>","Italique"],["s","<s>S</s>","Barré"],["h","T","Titre"],["l","•","Liste"],["q","❝","Citation"]];
+function pNotes(p){
+  const ed=S.pNoteEd&&p.journal.find(n=>n.id===S.pNoteEd),txt=ed?(S.pNoteEdTxt??ed.tx):p.brouillon;
+  const bar=`<div class="nfbar" role="toolbar" aria-label="Mise en forme">${N_TOOLS.map(([k,l,t])=>`<button type="button" class="nfb" data-pa="nfmt" data-v="${k}" aria-label="${t}" title="${t}">${l}</button>`).join("")}</div>`;
+  const editor=`<section class="psec pnote"><div class="pst">${ed?"Modifier la note":"Nouvelle note"}</div>${bar}
+    <textarea class="pin nta" id="pnta" data-pnote="1" placeholder="Indices, PNJ rencontrés, objectifs…" rows="9">${esc(txt)}</textarea>
+    <div class="btnrow">${ed?`<button class="btn red" data-pa="nsave" ${txt.trim()?"":"disabled"} id="pnbtn">Enregistrer</button><button class="btn" data-pa="ncancel">Annuler</button>`:`<button class="btn red" data-pa="nadd" ${txt.trim()?"":"disabled"} id="pnbtn">Ajouter la note</button>`}</div>
+    <p class="note">${ed?"La date d’origine est conservée.":"La note est datée au moment où tu l’ajoutes."} Tes notes restent sur ce téléphone : elles ne seront jamais envoyées au MJ.</p></section>`;
+  const L=p.journal.slice().sort((x,y)=>y.t-x.t);let day="",hist="";
+  L.forEach(n=>{const d=nDay(n.t);if(d!==day){day=d;hist+=`<div class="nday">${esc(d)}</div>`}
+    hist+=`<article class="nent${S.pNoteEd===n.id?" on":""}"><div class="nhead"><span class="nh">${nHour(n.t)}${n.mod?" · modifiée":""}</span><span class="nbt"><button class="btn sm" data-pa="nedit" data-k="${n.id}">Modifier</button>${pConfBtn("deln:"+n.id,"Supprimer","sm")}</span></div><div class="nbody">${nmd(n.tx)}</div></article>`});
+  return editor+`<section class="psec"><div class="pst">Historique${L.length?` <small>${L.length}</small>`:""}</div>${hist||'<p class="note">Aucune note pour l’instant.</p>'}</section>`}
+function pNoteFmt(v){const el=app.querySelector("#pnta");if(!el)return;const s=el.selectionStart,e=el.selectionEnd,val=el.value,sel=val.slice(s,e);let out,a,b;
+  const wrap=(m)=>{out=val.slice(0,s)+m+(sel||"texte")+m+val.slice(e);a=s+m.length;b=a+(sel||"texte").length};
+  const line=(pre)=>{const ls=val.lastIndexOf("\n",s-1)+1;let le=val.indexOf("\n",e);if(le<0)le=val.length;const blk=val.slice(ls,le).split("\n").map(x=>x.startsWith(pre)?x.slice(pre.length):pre+x).join("\n");out=val.slice(0,ls)+blk+val.slice(le);a=ls;b=ls+blk.length};
+  ({b:()=>wrap("**"),i:()=>wrap("*"),s:()=>wrap("~~"),h:()=>line("# "),l:()=>line("- "),q:()=>line("> ")})[v]();
+  el.value=out;el.focus();try{el.setSelectionRange(a,b)}catch(x){}pNoteInput(el)}
+function pNoteInput(el){const p=pCur();if(!p)return;if(S.pNoteEd)S.pNoteEdTxt=el.value;else{p.brouillon=el.value;pSave()}
+  el.style.height="auto";el.style.height=Math.max(220,el.scrollHeight+2)+"px";const b=app.querySelector("#pnbtn");if(b)b.disabled=!el.value.trim()}
 function pExport(p){
   const data=JSON.stringify({format:"codexj-perso",v:1,perso:p},null,1);
   const name=(norm(p.nom||"personnage").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"personnage")+".json";
@@ -893,12 +927,17 @@ function pImport(file){
 }
 function pAction(a){
   const act=a.dataset.pa,k=a.dataset.k,p=pCur();
+  if(act==="nfmt"){pNoteFmt(a.dataset.v);return}
   if(act!=="conf")S.pConf=null;
   if(p&&pCombatAction(act,a,p)){p.maj=Date.now();pSave(true);render();return}
   switch(act){
     case "new":{const n=pBlank();PERSOS.push(n);pSave(true);S.pid=n.id;S.pTab="fiche";S.pEdit=true;S.pPort=true;S.pPortC="";window.scrollTo(0,0);break}
-    case "open":S.pid=k;S.pTab="combat";S.pRoll=null;S.pEdit=false;S.pPort=false;S.pBz=null;window.scrollTo(0,0);break;
+    case "open":S.pNoteEd=null;S.pid=k;S.pTab="combat";S.pRoll=null;S.pEdit=false;S.pPort=false;S.pBz=null;window.scrollTo(0,0);break;
     case "list":S.pid=null;S.pEdit=false;S.pPort=false;S.pBz=null;window.scrollTo(0,0);break;
+    case "nadd":{const t=(p.brouillon||"").trim();if(!t)break;p.journal.push({id:uid(),t:Date.now(),tx:t});p.brouillon="";toast("Note ajoutée");break}
+    case "nedit":{const n=p.journal.find(x=>x.id===k);if(n){S.pNoteEd=k;S.pNoteEdTxt=n.tx;window.scrollTo(0,0)}break}
+    case "ncancel":S.pNoteEd=null;S.pNoteEdTxt=null;break
+    case "nsave":{const n=p.journal.find(x=>x.id===S.pNoteEd),t=(S.pNoteEdTxt||"").trim();if(n&&t){if(t!==n.tx)n.mod=true;n.tx=t;toast("Note modifiée")}S.pNoteEd=null;S.pNoteEdTxt=null;break}
     case "port":S.pPort=!S.pPort;S.pPortC="";break;
     case "portclose":S.pPort=false;break;
     case "portset":{const v=a.dataset.v||"";if(v&&!/^assets\/portraits\/[a-z]+\/\d+\.jpg$/.test(v))break;p.portrait=v;p.maj=Date.now();pSave(true);S.pPort=false;window.scrollTo(0,0);break}
@@ -942,13 +981,16 @@ function pAction(a){
       else if(k.startsWith("dm:")){S.pModInfo={};const [,path,i]=k.split(":"),x=pGet(p,path),key=path.split(".")[0];if(x&&Array.isArray(x.mods)){const e=x.mods[+i],id=e&&e.m;pModRevert(x,key,e);x.mods.splice(+i,1);
         /* un mod retiré emporte ceux qui en dépendent (leurs effets sont annulés aussi) */
         if(id&&!x.mods.some(y=>y&&y.m===id))for(let j=x.mods.length-1;j>=0;j--){const d=P_MODID[x.mods[j]&&x.mods[j].m];if(d&&d.req===id){pModRevert(x,key,x.mods[j]);x.mods.splice(j,1)}}}}
+      else if(k.startsWith("deln:")){const id=k.slice(5);p.journal=p.journal.filter(n=>n.id!==id);if(S.pNoteEd===id){S.pNoteEd=null;S.pNoteEdTxt=null}toast("Note supprimée")}
       else if(k.startsWith("del:")){const path=k.slice(4).split("."),i=+path.pop(),arr=pGet(p,path.join("."));if(Array.isArray(arr)){arr.splice(i,1);S.pOpen={}}}
       break}
   }
   if(p)p.maj=Date.now();pSave(true);render();
 }
+app.addEventListener("pointerdown",e=>{if(e.target.closest(".nfbar"))e.preventDefault()});
 app.addEventListener("click",e=>{const a=e.target.closest("[data-pa]");if(!a||!app.contains(a))return;e.preventDefault();pAction(a)});
 app.addEventListener("input",e=>{const t=e.target;
+  if(t.dataset.pnote){pNoteInput(t);return}
   if(t.dataset.pbzq){S.pBz.q=t.value;S._pFocus="#pbzq";render();return}
   const k=t.dataset.pf;if(!k||t.type==="checkbox")return;const p=pCur();if(!p)return;pSet(p,k,t.value);p.maj=Date.now();pSave();
   if(k==="nom"||k==="culte"||k==="culture"||k==="rang"||k==="concept"){const n=app.querySelector(".phn"),m=app.querySelector(".phm");if(n)n.textContent=p.nom||"Sans nom";if(m)m.textContent=[p.rang&&("Rang "+p.rang.replace(/^rang\s*/i,"")),p.culture,p.concept,p.culte].filter(Boolean).join(" · ")}});
@@ -1145,7 +1187,7 @@ app.addEventListener("click",e=>{
   const a=e.target.closest("[data-act]");if(!a)return;
   const act=a.dataset.act,v=a.dataset.v;
   switch(act){
-    case "ptab":S.pTab=v;S.pEdit=false;S.pPort=false;S.pBz=null;S.pConf=null;S.pRoll=null;render();window.scrollTo(0,0);break;
+    case "ptab":S.pNoteEd=null;S.pTab=v;S.pEdit=false;S.pPort=false;S.pBz=null;S.pConf=null;S.pRoll=null;render();window.scrollTo(0,0);break;
     case "layout":S.layout=S.layout==="ruche"?"grille":"ruche";store.set("layout",S.layout);render();break;
     case "regcat":S.regCat=v;render();break;
     case "potcult":S.potCult=v;render();window.scrollTo(0,0);break;

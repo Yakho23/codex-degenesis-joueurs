@@ -463,3 +463,23 @@ details.card.ppotc{border-left:3px solid var(--red)}
 .pgb.on{outline:2px solid var(--red);outline-offset:-2px}
 .pgb:active{opacity:.75}
 .pavbtn .pav{display:block}
+
+/* Onglet Notes : éditeur, mise en forme, historique */
+.nfbar{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.nfb{min-width:44px;height:40px;padding:0 10px;border:1px solid var(--line2);background:var(--panel2);color:var(--fg);font-family:var(--f-ui);font-size:17px;display:grid;place-items:center;-webkit-tap-highlight-color:transparent}
+.nfb:active{background:var(--red-d)}
+.nta{min-height:220px;resize:vertical;line-height:1.5;font-size:16px;width:100%;box-sizing:border-box}
+.pnote .btnrow{margin-top:10px}
+.pnote .btn[disabled]{opacity:.4;pointer-events:none}
+.nday{margin:16px 0 8px;font-family:var(--f-ui);font-size:13.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--red)}
+.nday:first-of-type{margin-top:2px}
+.nent{border:1px solid var(--line);border-left:3px solid var(--red-d);background:rgba(20,19,18,.7);padding:10px 12px;margin-bottom:10px}
+.nent.on{border-color:var(--red)}
+.nhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.nh{font-family:var(--f-ui);font-size:13.5px;letter-spacing:.06em;color:var(--dim)}
+.nbt{display:flex;gap:6px}
+.nbody{font-size:16px;line-height:1.5;overflow-wrap:anywhere}
+.nbody p{margin:0 0 4px}.nbody h4{margin:6px 0 4px;font-family:var(--f-ui);font-size:16px;letter-spacing:.05em;text-transform:uppercase;color:var(--fg)}
+.nbody ul{margin:2px 0 6px;padding-left:20px}.nbody blockquote{margin:4px 0;padding:2px 0 2px 10px;border-left:2px solid var(--dim);color:var(--mute)}
+.nbody .nsp{height:6px}
+.pst small{font-size:12px;color:var(--dim);margin-left:6px}
