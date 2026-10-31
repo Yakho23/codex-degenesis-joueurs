@@ -468,3 +468,5 @@ details.card.ppotc{border-left:3px solid var(--red)}
 /* Combat : fond des blocs un peu plus gris */
 .pcmb .psec{background:linear-gradient(180deg,#1d1d1d,#171717)!important;border-top-color:#e0213a!important}
 .pcmb .ptrk,.pcmb .pwpn{background:#121212!important}
+/* Même habillage sur la liste des personnages, la fiche, l’inventaire et les notes */
+.pcmb .pcard{background:linear-gradient(180deg,#1d1d1d,#171717)!important;border:0!important;border-top:2px solid #e0213a!important}

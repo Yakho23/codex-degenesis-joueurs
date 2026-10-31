@@ -372,7 +372,7 @@ function pPretires(){
 function pList(){
   const act=PERSOS.filter(p=>!p.arch),arch=PERSOS.filter(p=>p.arch);
   const card=p=>`<div class="pcard">${pAvatar(p)}<button class="pcmain" data-pa="open" data-k="${p.id}"><span class="pn">${esc(p.nom||"Sans nom")}</span><span class="pm">${esc([p.culte,p.rang].filter(Boolean).join(" · "))}</span><span class="pm2">${esc([p.culture,p.concept].filter(Boolean).join(" · "))}</span></button>${p.arch?`<button class="btn sm" data-pa="unarch" data-k="${p.id}">Restaurer</button>`:""}<span class="pcacts"><button class="pcdel pcdl" data-pa="expc" data-k="${p.id}" aria-label="Enregistrer la fiche de ${esc(p.nom||"ce personnage")}" title="Enregistrer la fiche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19h14"/></svg></button><button class="pcdel${S.pConf==="delc:"+p.id?" on":""}" data-pa="conf" data-k="delc:${p.id}" aria-label="Supprimer ${esc(p.nom||"ce personnage")}">${S.pConf==="delc:"+p.id?"Sûr ?":'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>'}</button></span></div>`;
-  return `<div class="stack">
+  return `<div class="stack pcmb">
    <div class="btnrow"><button class="btn red" data-pa="new">+ Nouveau personnage</button></div>
    <div class="btnrow"><label class="btn file">Importer une fiche<input type="file" accept=".json,application/json" data-pfile="1" hidden></label><button class="btn gold${S.pPre?" on":""}" data-pa="pre" aria-pressed="${!!S.pPre}">Pré-tirés</button></div>
    ${S.pPre?pPretires():""}
@@ -386,7 +386,7 @@ function pFiche(p){
    <div class="pbar"><button class="btn sm" data-pa="list">‹ Personnages</button>${S.pTab==="fiche"||S.pTab==="inventaire"?`<button class="btn sm${S.pEdit?" red":""}" data-pa="edit">${S.pEdit?"Sauvegarder":"Modifier"}</button>`:""}</div>`;
   const body={combat:pCombat,fiche:pSheet,inventaire:pInv,notes:pNotes}[S.pTab]||pSheet;
   const foot=S.pEdit&&(S.pTab==="fiche"||S.pTab==="inventaire")?`<button class="roll pdone" data-pa="edit" data-v="bas">SAUVEGARDER</button><p class="note">Les modifications sont enregistrées au fur et à mesure ; « Sauvegarder » repasse la fiche en lecture.</p>`:"";
-  return `<div class="stack perso">${head}${body(p)}${foot}${DATALISTS}</div>`;
+  return `<div class="stack perso pcmb">${head}${body(p)}${foot}${DATALISTS}</div>`;
 }
 /* ───── Écran Combat ───── */
 /* Ego : la piste stocke les points DÉPENSÉS (0 = Ego au maximum) ; affichage = points restants.
