@@ -37,7 +37,7 @@ const SECTIONS=[
  {id:"regles",n:"III",t:"Règles",s:"Combat, blessures, Ego",pos:[232,100]},
  {id:"bazar",n:"IV",t:"Bazar",s:"Armes, armures, matériel",pos:[174,201]},
  {id:"des",n:"V",t:"Dés",s:"Réserve, déclencheurs, échecs",pos:[58,201]},
- {id:"campagne",n:"VI",t:"Campagne",s:"Cartes",pos:[0,100]}];
+ {id:"campagne",n:"VI",t:"Cartes",s:"Carte du monde",pos:[0,100]}];
 
 /* ───────── clés des fiches (recherche globale) ───────── */
 const KEY=new Map(),kk=o=>KEY.get(o)||"",dk=o=>{const k=kk(o);return k?` data-k="${k}"`:""};
@@ -956,11 +956,11 @@ app.addEventListener("change",e=>{const t=e.target;
 
 /* ───────── VI. CAMPAGNE ───────── */
 /* Cartes : visionneuse zoom + déplacement (doigts, souris, molette), sans filtre ni interaction */
-const MAPS=[{id:"monde",t:"Monde",src:"assets/cartes/monde.jpg",w:3517,h:4970,cap:"Carte du monde · Primal Punk"}];
+const MAPS=[{id:"monde",t:"Carte du monde",src:"assets/cartes/monde.jpg",w:3517,h:4970,cap:"Carte du monde · Primal Punk"}];
 const MAPV={id:"monde",x:0,y:0,k:0,fit:0};
 function campagne(){
   const m=MAPS.find(x=>x.id===MAPV.id)||MAPS[0];
-  return `<div class="stack">${MAPS.length>1?chips(MAPS.map(x=>[x.id,x.t]),m.id,"mapsel","Cartes"):""}
+  return `<div class="stack">${chips(MAPS.map(x=>[x.id,x.t]),m.id,"mapsel","Cartes")}
    <div class="mapv" id="mapv"><img src="${m.src}" alt="${esc(m.cap)}" width="${m.w}" height="${m.h}" draggable="false"${MAPV.k?` style="transform:translate(${MAPV.x}px,${MAPV.y}px) scale(${MAPV.k})"`:' style="visibility:hidden"'}>
     <div class="mapb"><button data-map="in" aria-label="Zoom avant">+</button><button data-map="out" aria-label="Zoom arrière">−</button><button data-map="fit" aria-label="Carte entière">⤢</button></div></div>
    <p class="mapcap">${esc(m.cap)} · pince ou molette pour zoomer, glisse pour te déplacer, double-tap pour agrandir</p></div>`;
