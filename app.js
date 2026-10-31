@@ -1215,7 +1215,7 @@ app.addEventListener("click",e=>{
   switch(act){
     case "ptab":S.pNoteEd=null;S.pTab=v;S.pEdit=false;S.pPort=false;S.pBz=null;S.pConf=null;S.pRoll=null;render();window.scrollTo(0,0);break;
     case "layout":S.layout=S.layout==="ruche"?"grille":"ruche";store.set("layout2",S.layout);render();break;
-    case "regcat":S.regCat=v;render();break;
+    case "regcat":S.regCat=v;render();window.scrollTo(0,0);break;
     case "potcult":S.potCult=v;render();window.scrollTo(0,0);break;
     case "bzgrp":S.bzGrp=v;S.bzCat="Tout";render();break;
     case "bzcat":S.bzCat=v;render();break;
@@ -1234,7 +1234,7 @@ app.addEventListener("click",e=>{
     case "qclear":S[v]="";if(v==="homeQ")S.gAll=null;S._focusQ=true;render();if(v!=="homeQ"){const q=$("#q");if(q)q.focus()}break;
     case "pportc":S.pPortC=v;render();break;
     case "mapsel":MAPV.id=v;MAPV.k=0;render();break;
-    case "loretab":S.loreTab=v;S.loreQ="";render();break;
+    case "loretab":S.loreTab=v;S.loreQ="";render();window.scrollTo(0,0);break;
     case "zoom":{const z=document.createElement("div");z.className="zoom"+(a.dataset.wide?" wide":"");z.innerHTML=`<img src="${a.dataset.src}" alt=""><button class="x" aria-label="Fermer">×</button>`;z.addEventListener("click",ev=>{if(ev.target.closest(".x")||ev.target===z)z.remove()});document.body.appendChild(z);break;}
   }
 });
