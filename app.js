@@ -518,17 +518,17 @@ function pSoinBlock(p){
   const kit=K.length?`<div class="psoin pkit${K.some(pKitOk)?"":" low"}"><span class="pkic" title="Trousse de soins">${IC_KIT}</span><div class="pkb"><span class="pin2">${esc(K[0][0].nom||"Trousse")}</span><span class="pil">+2D sur INT+Médecine · doses restantes</span></div><span class="pq${pKitDoses(K[0][0])<=0?" low":""}"><span class="pstep"><button data-pa="kitd" data-k="${K[0][1]}" data-d="-1" aria-label="Moins">−</button><output>${pKitDoses(K[0][0])}/${pKitMax(K[0][0])}</output><button data-pa="kitd" data-k="${K[0][1]}" data-d="1" aria-label="Plus">+</button></span></span></div>
    <button class="chip pkit2" data-pa="kittog" aria-pressed="${!S.pNoKit}"${K.some(pKitOk)?"":" disabled"}>${IC_KIT}Utiliser la trousse dans le jet${K.some(pKitOk)&&!S.pNoKit?" (+2D)":""}</button>`:"";
   const bq=B.reduce((n,[x])=>n+Math.max(0,+x.qte||0),0);
-  const band=B.length?B.map(([x,i])=>`<div class="psoin"><span class="pkic">${IC_HEAL}</span><div class="pkb"><span class="pin2">${esc(x.nom||"Bandages")}</span><span class="pil">Appliqué juste après la blessure : +1 Blessure Superficielle soignée</span></div><span class="pq${(+x.qte||0)<=0?" low":""}">${pStep("equip."+i+".qte",+x.qte||0)}</span></div>`).join("")+`<button class="chip pkit2" data-pa="bandtog" aria-pressed="${!!S.pBandOn&&bq>0}"${bq>0?"":" disabled"}>${IC_HEAL}Appliquer un bandage (s’ajoute au résultat)</button>`:"";
+  const band=B.length?B.map(([x,i])=>`<div class="psoin"><span class="pkic">${IC_HEAL}</span><div class="pkb"><span class="pin2">${esc(x.nom||"Bandages")}</span><span class="pil">Appliqué juste après la blessure : +1 Blessure Superficielle soignée</span></div><span class="pq${(+x.qte||0)<=0?" low":""}">${pStep("equip."+i+".qte",+x.qte||0)}</span></div>`).join("")+`<button class="chip pkit2" data-pa="bandtog" aria-pressed="${!!S.pBandOn&&bq>0}"${bq>0?"":" disabled"}>${IC_HEAL}Appliquer un bandage</button>`:"";
   return `<section class="psec psoins"><div class="pst">Soins${K.some(pKitOk)?`<span class="pkib" title="Trousse de soins équipée">${IC_KIT}</span>`:""}</div>
    ${kit}${band}
    <div class="btnrow"><button class="btn red pib" data-pa="soin"${open?" disabled":""}>${IC_HEAL}Soigner</button></div>
-   <div class="pil">Remise sur pied : INT+Médecine (2), guérit 1 + DC Blessures Superficielles chez le patient (indicatif, ne modifie pas ta fiche). Juste après un combat, une seule fois. Les traumatismes demandent une installation (hors de ce bloc).</div>
+   <div class="pil">INT+Médecine (2), guérit 1 + DC Blessures Superficielles</div>
    ${pRollPanel(p,"soin")}</section>`}
 function pSoinPanel(p,R){
   const P=pPlan(p,R),tm=pTrauMalus(p),recap=[R.calc,tm?`Traumatismes −${tm}D`:""].filter(Boolean).join(" · ");
   let res="";
   if(R.done&&R.res){const r=R.res[0];
-    res=pOneRes(r,R.resDiff,"sk",null,0,"",p)+`<div class="prdmg">Guérison : ${R.heal.roll?`1 + ${r.trig} DC = ${R.heal.roll}`:"jet raté : 0"}${R.band?" + 1 (bandage)":""} = <b>${R.heal.n}</b> Blessure${R.heal.n>1?"s":""} Superficielle${R.heal.n>1?"s":""} soignée${R.heal.n>1?"s":""}.</div><div class="note">À titre indicatif : à reporter sur le patient.</div>`+(R.kit>=0?`<div class="note">Une dose de trousse utilisée.</div>`:"")}
+    res=pOneRes(r,R.resDiff,"sk",null,0,"",p)+`<div class="prdmg">Guérison : ${R.heal.roll?`1 + ${r.trig} DC = ${R.heal.roll}`:"jet raté : 0"}${R.band?" + 1 (bandage)":""} = <b>${R.heal.n}</b> Blessure${R.heal.n>1?"s":""} Superficielle${R.heal.n>1?"s":""} soignée${R.heal.n>1?"s":""}.</div>`+(R.kit>=0?`<div class="note">Une dose de trousse utilisée.</div>`:"")}
   return `<div class="proll"><div class="prh"><span>${esc(R.label)}</span><button class="prx" data-pa="rollx" aria-label="Fermer">×</button></div>
    <div class="prcalc">${esc(recap)}</div>
    ${R.done?"":`<div class="prrow"><span>Modificateur</span>${pStep2("rmod",R.mod>0?"+"+R.mod:R.mod)}</div><button class="roll" data-pa="rgo">LANCER ${P.pool}D</button>`}${res}</div>`}
