@@ -381,3 +381,8 @@ details.card.ppotc{border-left:3px solid var(--red)}
 .pminfo small{font-size:.75rem;opacity:.8}
 .pmo{flex-wrap:nowrap}.pmo span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pmo small{flex:none;white-space:nowrap}
 .pmprop{color:var(--fg,#ddd);font-size:.88rem;border-top:1px dashed var(--line2);padding-top:5px;margin-top:2px}
+.pmv{flex:none;display:flex;flex-direction:column;border-left:1px solid var(--line2)}
+.pmv button{flex:1;min-width:44px;min-height:22px;display:flex;align-items:center;justify-content:center;background:none;border:0;color:var(--dim);padding:0 8px;cursor:pointer}
+.pmv button+button{border-top:1px solid var(--line2)}
+.pmv button:disabled{opacity:.25;cursor:default}
+.pmv svg{width:18px;height:18px}
