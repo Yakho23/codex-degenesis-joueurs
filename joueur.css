@@ -256,10 +256,10 @@ details.card.ppotc>summary .t{font-size:16.5px}
 .pemb.vide .pev{color:var(--dim)}
 .pel{font-family:var(--f-ui);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:2px}
 .pev{font-size:16px;line-height:1.2;color:#fff;overflow-wrap:anywhere}
-.pidg{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin:0 0 14px}
-.pidg>div{background:var(--panel2);padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.pidg span{font-family:var(--f-ui);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
-.pidg b{font-weight:400;font-size:16.5px;color:#fff;overflow-wrap:anywhere}
+.pidg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0 0 14px;text-align:center}
+.pidg>div{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;padding:4px 0}
+.pidg span{font-family:var(--f-ui);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.pidg b{font-weight:400;font-size:17px;color:#fff;white-space:nowrap}
 
 /* Sporulation permanente */
 .tbx.spo i.on.perm,.tbx i.perm{background:var(--red);border-color:var(--red)}
@@ -450,7 +450,4 @@ details.card.ppotc{border-left:3px solid var(--red)}
 .pcmb .tbx:not(.ammo) i{width:auto;height:auto;aspect-ratio:1}
 @media (max-width:430px){.pcmb .ptri{display:none}}
 @media (max-width:340px){.pcmb .ptrh{gap:6px!important}.pcmb .ptrh .ptrl{font-size:11.5px!important;letter-spacing:.02em!important}.pcmb .ptrh .ptrv{font-size:20px!important}.pcmb .ptrh .ptrv small{font-size:12px}.pcmb .tbx:not(.ammo){grid-template-columns:repeat(auto-fill,minmax(6px,8px))}}
-/* Identité : 2×2 sur téléphone (le poids ne passe plus à la ligne), 4 colonnes sur grand écran */
-@media (max-width:520px){.pidg{grid-template-columns:repeat(2,1fr)}.pidg b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
-.pidg b{font-size:17px}
-@media (max-width:340px){.pemb .pev{font-size:14.5px;overflow-wrap:normal;hyphens:auto}.pembs{gap:4px}}
+@media (max-width:340px){.pemb .pev{font-size:14.5px;overflow-wrap:normal;hyphens:auto}.pembs{gap:4px}.pidg span{letter-spacing:.08em;font-size:11px}.pidg b{font-size:15.5px}}
