@@ -36,7 +36,7 @@ const SECTIONS=[
  {id:"lore",n:"II",t:"Lore",s:"Monde, régions, cultes",pos:[174,0]},
  {id:"regles",n:"III",t:"Règles",s:"Combat, blessures, Ego",pos:[232,100]},
  {id:"bazar",n:"IV",t:"Bazar",s:"Armes, armures, matériel",pos:[174,201]},
- {id:"des",n:"V",t:"Dés",s:"Réserve, déclencheurs, échecs",pos:[58,201]},
+ {id:"des",n:"V",t:"Dés",s:"Jet simple, confrontation",pos:[58,201]},
  {id:"campagne",n:"VI",t:"Cartes",s:"Carte du monde",pos:[0,100]}];
 
 /* ───────── clés des fiches (recherche globale) ───────── */
