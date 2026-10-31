@@ -684,23 +684,26 @@ window.PRETIRES = [
     "enc": "",
     "effet": "",
     "combat": false
-   },
-   {
-    "nom": "Irritant",
-    "qte": 1,
-    "enc": "",
-    "effet": "Empoisonné (5, -3D, récupération +1D par round)",
-    "combat": false
-   },
-   {
-    "nom": "Poussière de feu",
-    "qte": 1,
-    "enc": "",
-    "effet": "Crée dégâts de feu comme le calcinateur (8)",
-    "combat": false
    }
   ],
-  "mun": [],
+  "mun": [
+   {
+    "nom": "Cartouche d’irritant",
+    "chargeurs": 0,
+    "balles": 1,
+    "deg": "–",
+    "agent": "Irritant",
+    "effet": "Empoisonné (5, -3D, récupération +1D par round)"
+   },
+   {
+    "nom": "Cartouche de poussière de feu",
+    "chargeurs": 0,
+    "balles": 1,
+    "deg": "–",
+    "agent": "Poussière de feu",
+    "effet": "Crée dégâts de feu comme le calcinateur (8)"
+   }
+  ],
   "artef": [],
   "portrait": "assets/pretires/alexiastassen.jpg"
  },

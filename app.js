@@ -157,8 +157,8 @@ const herFind=n=>{const q=norm(n).trim();return q?P_HER.find(h=>norm(h.n)===q)||
 const P_LISTS={
  armes:{t:"Armes",f:[["nom","Nom"],["comp","Compétence d’attaque"],["man","Maniement"],["portee","Portée"],["deg","Dégâts"],["charg","Chargeur"],["cal","Calibre","c"],["cur","Balles dans l’arme","n"],["agent","Agent chargé","a"],["qte","Grenades possédées","n"],["prop","Propriétés"],["enc","Enc."],["tech","Tech"],["empl","Empl."],["fam","Type d’arme (mods)","s"]],bz:r=>r._grp==="armes"&&r._cat!=="Munitions"&&!/^Modifications/.test(r._cat||"")},
  armures:{t:"Armures",f:[["nom","Nom"],["va","Valeur d’armure"],["prop","Propriétés"],["enc","Enc."],["tech","Tech"],["empl","Empl."]],bz:r=>r._grp==="protection"&&!/^Modifications/.test(r._cat||"")},
- mun:{t:"Munitions",f:[["nom","Calibre ou type"],["chargeurs","Chargeurs (indicatif)","n"],["balles","Balles (total, armes comprises)","n"],["deg","Dégâts"]],bz:r=>r._cat==="Munitions"},
- equip:{t:"Équipement et consommables",f:[["nom","Nom"],["qte","Quantité","n"],["enc","Enc."],["effet","Effet ou note"],["combat","À portée de main en combat","b"]],bz:r=>["equipement","medical"].includes(r._grp)||(r._grp==="armes"&&r._cat==="Agents chimiques")},
+ mun:{t:"Munitions",f:[["nom","Calibre ou type"],["chargeurs","Chargeurs (indicatif)","n"],["balles","Balles (total, armes comprises)","n"],["deg","Dégâts"],["effet","Effet (agent chimique)"]],bz:r=>r._cat==="Munitions"},
+ equip:{t:"Équipement et consommables",f:[["nom","Nom"],["qte","Quantité","n"],["enc","Enc."],["effet","Effet ou note"],["combat","À portée de main en combat","b"]],bz:r=>["equipement","medical"].includes(r._grp)},
 };
 /* calibres : les variantes d’écriture d’un même calibre du Bazar (5.56x45mm / 5,56×45 mm…) sont ramenées à une seule entrée */
 const P_CALALIAS=[[/5[.,]56\s*[x×]\s*45/i,"5.56x45 mm"],[/^(calibre\s*12|12\s*mm)/i,"Calibre 12"],[/e-?cube/i,"E-Cube"],[/^14\s*mm/i,"14 mm"]];
@@ -167,7 +167,7 @@ const P_CALS=[...new Set(BAZAR.filter(r=>r._grp==="armes"&&r._cat!=="Grenades"&&
 const P_FROMBZ={
  armes:r=>Object.assign({nom:r.Nom,comp:r._skill||"",man:r["Man."],portee:r["Portée"],deg:r["Dégâts"],charg:r["Charg."],cal:pCalCanon(r["Cal."]),prop:r["Propriétés"],enc:r["Enc."],tech:r.Tech,empl:r["Empl."],cat:r._cat||""},/d[ée]viation/i.test(r["Propriétés"]||"")?{qte:1}:{}),
  armures:r=>({nom:r.Nom,va:r["Valeur d’armure"]||(r["Défense"]?"Défense "+r["Défense"]+(r.Attaque&&r.Attaque!=="–"?" · Attaque "+r.Attaque:""):""),prop:r["Propriétés"],enc:r["Enc."],tech:r.Tech,empl:r["Empl."]}),
- mun:r=>({nom:r.Nom,chargeurs:0,balles:0,deg:r["Dégâts"]}),
+ mun:r=>Object.assign({nom:r.Nom,chargeurs:0,balles:0,deg:r["Dégâts"]},r.Agent?{balles:1,agent:r.Agent,effet:r.Effet||""}:{}),
  equip:r=>({nom:r.Nom,qte:1,enc:r["Enc."],effet:r.Effet||r["Propriétés"]||"",combat:false})};
 const P_POTS=Object.keys(POTENTIELS).flatMap(c=>POTENTIELS[c].map(p=>({p,c})));
 const potFind=n=>{const q=norm(n).trim();return q?P_POTS.find(x=>norm(x.p.t)===q):null};
@@ -406,20 +406,21 @@ function pVA(p,comp){
 const pRafale=w=>{const m=String(w&&w.prop||"").match(/rafales?\s*\((\d+)\)/i);return m?+m[1]:0};
 /* Agents chimiques (Katharsys) : le fusil fongicide et le lance-cartouches tirent des cartouches, le pistolet à injection une dose.
    Fusil fongicide : 1 cartouche = 10 utilisations. Lance-cartouches et pistolet à injection : 1 cartouche (ou dose) par tir.
-   Le stock est dans l’Équipement (nom de l’agent + quantité) ; l’agent chargé est noté sur l’arme (champ « agent »). */
-const P_AGENTS=BAZAR.filter(r=>r._grp==="armes"&&r._cat==="Agents chimiques");
-const pAgentFind=n=>{const q=norm(n).trim();return q?P_AGENTS.find(r=>norm(r.Nom)===q):null};
+   Le stock est dans les Munitions (cartouche de l’agent, quantité = champ « balles ») ; l’agent chargé est noté sur l’arme (champ « agent »). */
+const P_AGENTS=BAZAR.filter(r=>r._cat==="Munitions"&&r.Agent);
+const pAgentFind=n=>{const q=norm(n).trim();return q?P_AGENTS.find(r=>norm(r.Agent)===q||norm(r.Nom)===q):null};
 const pInject=w=>/injection/i.test(w&&w.nom||"");
 const pAgentW=w=>!!w&&(pInject(w)||/^cartouches?$/i.test(String(w.cal||"").trim()));
 const pAgentFull=w=>/fongicide/i.test(w&&w.nom||"");
-const pAgentStock=(p,w)=>p.equip.map((x,i)=>({x,i,a:pAgentFind(x.nom)})).filter(o=>o.a&&(+o.x.qte||0)>0&&(!pInject(w)||o.a.Injecteur==="oui"));
+const pAgentOf=x=>pAgentFind(x.agent)||P_AGENTS.find(r=>norm(x.nom).includes(norm(r.Agent)));
+const pAgentStock=(p,w)=>p.mun.map((x,i)=>({x,i,a:pAgentOf(x)})).filter(o=>o.a&&(+o.x.balles||0)>0&&(!pInject(w)||o.a.Injecteur==="oui"));
 const pAgentSel=(p,w,i)=>{const st=pAgentStock(p,w),v=S.pAgSel&&S.pAgSel[p.id+":"+i];return st.some(o=>norm(o.x.nom)===norm(v))?v:(st[0]?st[0].x.nom:"")};
 const pRanged=(p,w)=>(pCap(w)>0&&!pInject(w))||/projectile|jet/i.test(norm(w.comp));
 const pMelee=(p,w)=>!pRanged(p,w)&&/corps a corps|lutte/.test(norm(w.comp)||"corps a corps");
 const pCap=w=>{let n=Math.floor(nb(w.charg));if(n<=0&&pAgentW(w))n=pInject(w)?1:10;if(n<=0)return 0;const f=pModFx(w,"armes");return Math.max(0,Math.round((n+f.cap)*f.mul))};
 const pLoaded=w=>Math.max(0,Math.min(pCap(w),+w.cur||0)); /* balles réellement dans l’arme : saisies dans l’Inventaire (0 par défaut) */
 const calKey=s=>norm(String(s||"").replace(/×/g,"x")).replace(/[^a-z0-9]/g,"");
-function pAmmoFor(p,w){const c=calKey(w.cal);if(!c)return [];return p.mun.filter(m=>{const n=calKey(m.nom);return n&&(n.includes(c)||c.includes(n))})}
+function pAmmoFor(p,w){const c=calKey(w.cal);if(!c)return [];return p.mun.filter(m=>{const n=!m.agent&&calKey(m.nom);return n&&(n.includes(c)||c.includes(n))})}
 function pTrauMalus(p){return +p.pistes.trau.v||0}
 function trackBoxes(n,on,cls,perm){return `<span class="tbx ${cls}">${Array.from({length:n},(_,i)=>`<i class="${i<perm?"on perm":i<on?"on":""}"></i>`).join("")}</span>`}
 /* Sporulation permanente (Katharsys, Porteur du Germe) : points notés sur l’échelle, qu’aucun EX ne peut effacer ; 50 % du maximum = Léperos */
@@ -629,15 +630,15 @@ function pCombat(p){
 }
 function pAgentUI(p,w,i,cap,ld){const a=pAgentFind(w.agent),st=pAgentStock(p,w),sel=pAgentSel(p,w,i);
   return `<div class="pammo">${trackBoxes(cap,ld,"ammo")}<span class="pamt">${ld}/${cap}</span></div>
-  <div class="pil pagent">${a?`<b>${esc(a.Nom)}</b>${ld?"":" (vide)"} · ${esc(a.Effet||"")}`:"Aucun agent chargé."}</div>
-  ${st.length?`<select class="pin psel pagsel" data-pagsel="${i}">${st.map(o=>`<option value="${esc(o.x.nom)}"${norm(o.x.nom)===norm(sel)?" selected":""}>${esc(o.x.nom)} · ${+o.x.qte||0} en stock</option>`).join("")}</select>`:`<div class="pil">${pInject(w)?"Aucune dose en stock (agents « Injecteur : oui » dans l’Équipement).":"Aucune cartouche en stock : ajoute un agent chimique dans l’Équipement."}</div>`}`}
+  <div class="pil pagent">${a?`<b>${esc(a.Agent)}</b>${ld?"":" (vide)"} · ${esc(a.Effet||"")}`:"Aucun agent chargé."}</div>
+  ${st.length?`<select class="pin psel pagsel" data-pagsel="${i}">${st.map(o=>`<option value="${esc(o.x.nom)}"${norm(o.x.nom)===norm(sel)?" selected":""}>${esc(o.x.nom)} · ${+o.x.balles||0} en stock</option>`).join("")}</select>`:`<div class="pil">${pInject(w)?"Aucune dose en stock (agents « Injecteur : oui » dans les Munitions).":"Aucune cartouche en stock : ajoute une cartouche d’agent dans les Munitions."}</div>`}`}
 function pAgentReload(p,w,i){const cap=pCap(w),ld=pLoaded(w),st=pAgentStock(p,w);
   if(!st.length){toast(pInject(w)?"Aucune dose en stock":"Aucune cartouche en stock");return true}
-  const n=pAgentSel(p,w,i),o=st.find(o=>norm(o.x.nom)===norm(n))||st[0],same=norm(w.agent)===norm(o.a.Nom),full=pAgentFull(w);
-  if(same&&ld>=cap){toast("Déjà chargé : "+o.a.Nom);return true}
+  const n=pAgentSel(p,w,i),o=st.find(o=>norm(o.x.nom)===norm(n))||st[0],same=norm(w.agent)===norm(o.a.Agent),full=pAgentFull(w);
+  if(same&&ld>=cap){toast("Déjà chargé : "+o.a.Agent);return true}
   pSnap(p,"Recharger "+(w.nom||""));
-  if(full){o.x.qte=(+o.x.qte||0)-1;w.agent=o.a.Nom;w.cur=cap;toast("Cartouche « "+o.a.Nom+" » chargée · "+cap+" utilisations")}
-  else{const need=same?cap-ld:cap,t=Math.min(need,+o.x.qte||0);o.x.qte=(+o.x.qte||0)-t;w.agent=o.a.Nom;w.cur=(same?ld:0)+t;toast(t+" × « "+o.a.Nom+" » chargé"+(t>1?"s":"")+(w.cur<cap?" (stock épuisé)":""))}
+  if(full){o.x.balles=(+o.x.balles||0)-1;w.agent=o.a.Agent;w.cur=cap;toast("Cartouche « "+o.a.Agent+" » chargée · "+cap+" utilisations")}
+  else{const need=same?cap-ld:cap,t=Math.min(need,+o.x.balles||0);o.x.balles=(+o.x.balles||0)-t;w.agent=o.a.Agent;w.cur=(same?ld:0)+t;toast(t+" × « "+o.a.Agent+" » chargé"+(t>1?"s":"")+(w.cur<cap?" (stock épuisé)":""))}
   return true}
 function pSnap(p,label){S.pUndo=(S.pUndo||[]).concat({id:p.id,label,json:JSON.stringify(p)}).slice(-10)}
 let pWakeLock=null;
@@ -751,7 +752,7 @@ function pSheet(p){
   return h;
 }
 /* balles chargées dans les armes du même calibre que la ligne de munitions */
-function pMunLoaded(p,x){const c=calKey(x.nom);if(!p||!c)return 0;return p.armes.filter(w=>pCap(w)&&calKey(w.cal)&&(calKey(w.cal).includes(c)||c.includes(calKey(w.cal)))).reduce((s,w)=>s+pLoaded(w),0)}
+function pMunLoaded(p,x){const c=calKey(x.nom);if(!p||!c||x.agent)return 0;return p.armes.filter(w=>pCap(w)&&calKey(w.cal)&&(calKey(w.cal).includes(c)||c.includes(calKey(w.cal)))).reduce((s,w)=>s+pLoaded(w),0)}
 /* valeur affichée d’un compteur : pour les munitions, le total (réserve + balles chargées) ; les + / − modifient la réserve */
 const pQtyShow=(p,key,f,x)=>key==="mun"&&f==="balles"?(+x.balles||0)+pMunLoaded(p,x):+x[f]||0;
 /* valeurs affichées d’une arme / armure, mods compris */
@@ -763,7 +764,7 @@ function pVaTxt(x){const f=pModFx(x,"armures").arm,v=String(x.va||"").trim();ret
 function pItemLine(key,x){
   if(key==="armes")return [x.deg&&"Dég. "+pDegTxt(x),x.portee&&"Portée "+x.portee,x.charg&&(pCap(x)?"Chargée "+pLoaded(x)+"/"+pCap(x):"Charg. "+x.charg),x.cal&&"Cal. "+x.cal,pAgentW(x)&&x.agent&&"Agent : "+x.agent,(x.man||pModFx(x,"armes").man)&&"Man. "+pManVal(x),pModFx(x,"armes").enc&&"Enc. "+pEncTxt(x,"armes")].filter(Boolean);
   if(key==="armures")return [(x.va||pModFx(x,"armures").arm)&&"Armure "+pVaTxt(x),(x.enc||pModFx(x,"armures").enc)&&"Enc. "+pEncTxt(x,"armures")].filter(Boolean);
-  if(key==="mun")return [x.deg&&"Dég. "+x.deg].filter(Boolean);
+  if(key==="mun")return [x.agent?x.effet:x.deg&&"Dég. "+x.deg].filter(Boolean);
   if(key==="equip")return [x.enc&&"Enc. "+x.enc,x.combat&&"combat"].filter(Boolean);
   return [x.act&&"Activation : "+x.act].filter(Boolean);
 }
@@ -793,12 +794,12 @@ function pInv(p){
     const rows=p[key].map((x,i)=>{const base=key+"."+i;
       const nm=(key==="armes"||key==="armures")?Math.max(0,Math.min(12,Math.floor(nb(x.empl)))):0,mods=Array.isArray(x.mods)?x.mods:[];
       const modsEd=nm?pModsUI(p,key,x,base):"",modsRd=[];
-      const okey=p.id+":"+base,Lf=L.f.filter(([f])=>!(key==="armes"&&f==="cur"&&!pCap(x))&&!(key==="armes"&&f==="qte"&&!pGrenade(x))&&!(f==="fam"&&!(key==="armes"&&nm&&!pGrenade(x)))&&!(f==="agent"&&!(key==="armes"&&pAgentW(x))));
+      const okey=p.id+":"+base,Lf=L.f.filter(([f])=>!(key==="armes"&&f==="cur"&&!pCap(x))&&!(key==="armes"&&f==="qte"&&!pGrenade(x))&&!(f==="fam"&&!(key==="armes"&&nm&&!pGrenade(x)))&&!(f==="agent"&&!(key==="armes"&&pAgentW(x)))&&!(key==="mun"&&((f==="chargeurs"||f==="deg"||f==="nom"&&false)&&x.agent||f==="effet"&&!x.agent)));
       if(E&&!(S.pOpen||{})[okey]){const sum=pItemLine(key,x).concat(nm?[nm+" mod"+(nm>1?"s":"")]:[]);const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur")).map(([f,l])=>(key==="mun"?(f==="chargeurs"?"charg. ":"balles "):"×")+pQtyShow(p,key,f,x));
         const cf=S.pConf==="del:"+base;return `<div class="pitem pcol pcw"><button class="pcopen" data-pa="itemopen" data-k="${okey}"><span class="pcoln"><span class="pin2">${esc(x.nom||"Sans nom")}</span>${sum.length||q.length?`<small>${esc(q.concat(sum).join(" · "))}</small>`:""}</span><span class="pcolm">Modifier ›</span></button>${(key==="armes"||key==="armures")&&p[key].length>1?`<span class="pmv"><button data-pa="mv" data-k="${base}" data-d="-1" aria-label="Monter ${esc(x.nom||"")}"${i===0?" disabled":""}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button><button data-pa="mv" data-k="${base}" data-d="1" aria-label="Descendre ${esc(x.nom||"")}"${i===p[key].length-1?" disabled":""}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></span>`:""}<button class="pdelx${cf?" on":""}" data-pa="conf" data-k="del:${base}" aria-label="Retirer ${esc(x.nom||"")}" title="Retirer">${cf?"Retirer ?":'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>'}</button></div>`}
-      if(E)return `<div class="pitem ed"><button class="btn sm pfold" data-pa="itemopen" data-k="${okey}">‹ Replier ${esc(x.nom||"")}</button><div class="pgrid">${Lf.map(([f,l,t])=>t==="b"?`<label class="pchk"><input type="checkbox" data-pf="${base}.${f}"${x[f]?" checked":""}> ${l}</label>`:t==="n"?`<label class="pl"><span>${l}</span>${pStep(base+"."+f,pQtyShow(p,key,f,x))}</label>`:t==="c"?`<label class="pl"><span>${l}</span>${pSel(base+"."+f,pCalCanon(x[f]),P_CALS,"—")}</label>`:t==="a"?`<label class="pl wide"><span>${l}</span>${pSel(base+"."+f,x[f]||"",P_AGENTS.map(r=>r.Nom),"—")}</label>`:t==="s"?`<label class="pl wide"><span>${l}</span>${pSel(base+"."+f,x[f]||"",Object.values(P_FAMN),"Auto : "+(P_FAMN[pModFam(Object.assign({},x,{fam:""}),key)]||"aucun"))}</label>`:`<label class="pl${f==="nom"||f==="prop"||f==="effet"||f==="fonc"?" wide":""}"><span>${l}</span>${f==="prop"||f==="effet"||f==="fonc"?pTa(base+"."+f,x[f]||""):pIn(base+"."+f,x[f]||"")}</label>`).join("")}</div>${modsEd}<div class="btnrow">${pConfBtn("del:"+base,"Retirer","sm")}</div></div>`;
+      if(E)return `<div class="pitem ed"><button class="btn sm pfold" data-pa="itemopen" data-k="${okey}">‹ Replier ${esc(x.nom||"")}</button><div class="pgrid">${Lf.map(([f,l,t])=>t==="b"?`<label class="pchk"><input type="checkbox" data-pf="${base}.${f}"${x[f]?" checked":""}> ${l}</label>`:t==="n"?`<label class="pl"><span>${l}</span>${pStep(base+"."+f,pQtyShow(p,key,f,x))}</label>`:t==="c"?`<label class="pl"><span>${l}</span>${pSel(base+"."+f,pCalCanon(x[f]),P_CALS,"—")}</label>`:t==="a"?`<label class="pl wide"><span>${l}</span>${pSel(base+"."+f,x[f]||"",P_AGENTS.map(r=>r.Agent),"—")}</label>`:t==="s"?`<label class="pl wide"><span>${l}</span>${pSel(base+"."+f,x[f]||"",Object.values(P_FAMN),"Auto : "+(P_FAMN[pModFam(Object.assign({},x,{fam:""}),key)]||"aucun"))}</label>`:`<label class="pl${f==="nom"||f==="prop"||f==="effet"||f==="fonc"?" wide":""}"><span>${l}</span>${f==="prop"||f==="effet"||f==="fonc"?pTa(base+"."+f,x[f]||""):pIn(base+"."+f,x[f]||"")}</label>`).join("")}</div>${modsEd}<div class="btnrow">${pConfBtn("del:"+base,"Retirer","sm")}</div></div>`;
       const q=Lf.filter(([f,,t])=>t==="n"&&!(key==="armes"&&f==="cur"));const det=key==="mun"?[]:Lf.filter(([f,,t])=>f!=="nom"&&f!=="fam"&&t!=="n"&&t!=="b"&&t!=="a"&&x[f]);
-      return `<div class="pitem ${key}"><div class="pih${key==="mun"?" mun":""}"><span class="pin2">${esc(x.nom||"—")}</span>${q.map(([f,l])=>`<span class="pq${pQtyShow(p,key,f,x)<=0?" low":""}" title="${l}">${pStep(base+"."+f,pQtyShow(p,key,f,x))}<small>${key==="mun"?(f==="chargeurs"?"charg.":"balles au total"):key==="armes"?(f==="qte"?"":"/ "+pCap(x)+" dans l’arme"):""}</small></span>`).join("")}</div>${pItemLine(key,x).length?`<div class="pchips">${pItemLine(key,x).map(t=>`<span>${esc(t)}</span>`).join("")}</div>`:""}${pModsUI(p,key,x,base)}${det.length?`<details class="pdet"><summary>Détails</summary><dl class="statl">${det.map(([f,l])=>`<dt>${l}</dt><dd>${esc(x[f])}</dd>`).join("")}</dl></details>`:""}</div>`}).join("");
+      return `<div class="pitem ${key}"><div class="pih${key==="mun"?" mun":""}"><span class="pin2">${esc(x.nom||"—")}</span>${q.map(([f,l])=>`<span class="pq${pQtyShow(p,key,f,x)<=0?" low":""}" title="${l}">${pStep(base+"."+f,pQtyShow(p,key,f,x))}<small>${key==="mun"?(f==="chargeurs"?"charg.":x.agent?"cartouches":"balles au total"):key==="armes"?(f==="qte"?"":"/ "+pCap(x)+" dans l’arme"):""}</small></span>`).join("")}</div>${pItemLine(key,x).length?`<div class="pchips">${pItemLine(key,x).map(t=>`<span>${esc(t)}</span>`).join("")}</div>`:""}${pModsUI(p,key,x,base)}${det.length?`<details class="pdet"><summary>Détails</summary><dl class="statl">${det.map(([f,l])=>`<dt>${l}</dt><dd>${esc(x[f])}</dd>`).join("")}</dl></details>`:""}</div>`}).join("");
     const bz=S.pBz&&S.pBz.list===key?pBzPanel(key):"";
     h+=`<section class="psec pinvs ${key}"><div class="pst"><span class="psti">${P_LIC[key]||""}</span>${L.t}</div>${rows||`<p class="pnone">Rien pour l’instant.</p>`}${E?`<div class="btnrow"><button class="btn sm" data-pa="add" data-k="${key}">+ Ajouter</button><button class="btn sm${bz?" red":""}" data-pa="bz" data-k="${key}">${bz?"Fermer le Bazar":"+ Depuis le Bazar"}</button></div>${bz}`:""}</section>`;
   });
@@ -841,7 +842,7 @@ function pAction(a){
       if(mm){const x=p.mun[+mm[1]];if(x){const T=pQtyShow(p,"mun","balles",x),T2=Math.max(0,Math.min(9999,T+(+a.dataset.d)));if(T2===T)break;
         /* le total ne dépend pas du chargeur : en dessous des balles chargées, on retire aussi des balles dans les armes du même calibre */
         const ld=pMunLoaded(p,x);let cut=Math.max(0,ld-T2);x.balles=Math.max(0,T2-ld);
-        if(cut){const c=calKey(x.nom);p.armes.forEach(w=>{if(!cut||!pCap(w)||!calKey(w.cal)||!(calKey(w.cal).includes(c)||c.includes(calKey(w.cal))))return;const t=Math.min(cut,pLoaded(w));w.cur=pLoaded(w)-t;cut-=t})}}
+        if(cut&&!x.agent){const c=calKey(x.nom);p.armes.forEach(w=>{if(!cut||!pCap(w)||!calKey(w.cal)||!(calKey(w.cal).includes(c)||c.includes(calKey(w.cal))))return;const t=Math.min(cut,pLoaded(w));w.cur=pLoaded(w)-t;cut-=t})}}
         break}
       const cur=+pGet(p,k)||0;let v=cur+(+a.dataset.d);v=Math.max(k.endsWith(".max")?1:0,Math.min(k.endsWith(".max")?60:9999,v));
       if(/^armes\.\d+\.cur$/.test(k))v=Math.min(v,pCap(pGet(p,k.replace(/\.cur$/,""))));pSet(p,k,v);
