@@ -703,5 +703,116 @@ window.PRETIRES = [
   "mun": [],
   "artef": [],
   "portrait": "assets/pretires/alexiastassen.jpg"
+ },
+ {
+  "nom": "Viktor Kreuzwald",
+  "age": "48",
+  "rang": "2 : Juge des villes",
+  "xp": "",
+  "sexe": "Masculin",
+  "taille": "1 m 83",
+  "poids": "91 kg",
+  "lc": "200",
+  "culture": "Borca",
+  "concept": "Le Traditionaliste",
+  "culte": "Juges",
+  "her": [
+   "",
+   "",
+   ""
+  ],
+  "a": {
+   "PHY": 3,
+   "AGI": 2,
+   "CHA": 3,
+   "INT": 2,
+   "PSY": 3,
+   "INS": 3
+  },
+  "k": {
+   "Corps à corps": 3,
+   "Force": 2,
+   "Résistance": 2,
+   "Mobilité": 2,
+   "Considération": 2,
+   "Expression": 1,
+   "Négociation": 1,
+   "Légendes": 2,
+   "Domination": 3,
+   "Foi": 2,
+   "Réactivité": 2,
+   "Empathie": 1,
+   "Perception": 2,
+   "Pulsions": 2,
+   "Survie": 1
+  },
+  "o": {
+   "Alliés": 1,
+   "Renommée": 1,
+   "Ressources": 2
+  },
+  "pots": [
+   {
+    "n": "Coup de marteau",
+    "lvl": 1
+   }
+  ],
+  "pistes": {
+   "ego": {
+    "max": 10,
+    "v": 0
+   },
+   "spo": {
+    "max": 10,
+    "v": 0,
+    "perm": 0
+   },
+   "bles": {
+    "max": 10,
+    "v": 0
+   },
+   "trau": {
+    "max": 6,
+    "v": 0
+   }
+  },
+  "armes": [
+   {
+    "nom": "Marteau de jugement",
+    "comp": "PHY+CORPS À CORPS",
+    "man": "-2D",
+    "portee": "1",
+    "deg": "1+F",
+    "charg": "",
+    "cal": "",
+    "prop": "Contondant, Choc (3DC)",
+    "enc": "3",
+    "tech": "III",
+    "empl": "2",
+    "cat": "Corps à corps"
+   }
+  ],
+  "armures": [
+   {
+    "nom": "Chapeau et manteau",
+    "va": "2",
+    "prop": "",
+    "enc": "2",
+    "tech": "II",
+    "empl": "2"
+   }
+  ],
+  "equip": [
+   {
+    "nom": "Codex",
+    "qte": 1,
+    "enc": "",
+    "effet": "CHA+Expression : +2D ; 1 round de méditation : +1 point d’Égo",
+    "combat": false
+   }
+  ],
+  "mun": [],
+  "artef": [],
+  "portrait": "assets/pretires/viktorkreuzwald.jpg"
  }
 ];
