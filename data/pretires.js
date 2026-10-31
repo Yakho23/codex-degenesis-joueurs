@@ -1108,5 +1108,194 @@ window.PRETIRES = [
   "artef": [],
   "notes": "Modules de l’armure : Source niv. 1 (enc. 2), Lumière verte.",
   "portrait": "assets/pretires/octet.jpg"
+ },
+ {
+  "nom": "Pavel",
+  "age": 27,
+  "rang": "3 : Protecteur",
+  "xp": "",
+  "sexe": "Masculin",
+  "taille": "1 m 86",
+  "poids": "88 kg",
+  "lc": "",
+  "culture": "Pollen",
+  "concept": "Le Voyageur",
+  "culte": "Juges",
+  "her": [
+   "Impitoyable",
+   "Homme de main",
+   "Petite sœur"
+  ],
+  "a": {
+   "PHY": 3,
+   "AGI": 3,
+   "CHA": 2,
+   "INT": 1,
+   "PSY": 3,
+   "INS": 4
+  },
+  "k": {
+   "Athlétisme": 1,
+   "Corps à corps": 4,
+   "Force": 2,
+   "Lutte": 2,
+   "Résistance": 2,
+   "Vigueur": 1,
+   "Armes à projectiles": 3,
+   "Furtivité": 2,
+   "Mobilité": 1,
+   "Navigation": 3,
+   "Domination": 3,
+   "Réactivité": 3,
+   "Volonté": 2,
+   "Empathie": 2,
+   "Orientation": 1,
+   "Perception": 2,
+   "Pulsions": 2,
+   "Survie": 2
+  },
+  "o": {},
+  "pots": [
+   {
+    "n": "Coup de marteau",
+    "lvl": 1
+   }
+  ],
+  "pistes": {
+   "ego": {
+    "max": 18,
+    "v": 0
+   },
+   "spo": {
+    "max": 10,
+    "v": 0,
+    "perm": 0
+   },
+   "bles": {
+    "max": 10,
+    "v": 0
+   },
+   "trau": {
+    "max": 6,
+    "v": 0
+   }
+  },
+  "armes": [
+   {
+    "nom": "Marteau de jugement",
+    "comp": "PHY+CORPS À CORPS",
+    "man": "-2D",
+    "portee": "1",
+    "deg": "1+F",
+    "charg": "",
+    "cal": "",
+    "prop": "Contondant, Choc (3DC)",
+    "enc": "3",
+    "tech": "III",
+    "empl": "2",
+    "cat": "Corps à corps"
+   },
+   {
+    "nom": "Mousquet de Juge",
+    "comp": "AGI+ARMES À PROJECTILES",
+    "man": "–",
+    "portee": "10 /40",
+    "deg": "8",
+    "charg": "1",
+    "cal": "Balle en plomb",
+    "prop": "Charg. par gueule",
+    "enc": "2",
+    "tech": "III",
+    "empl": "2",
+    "cat": "Fusils",
+    "cur": 1
+   }
+  ],
+  "armures": [
+   {
+    "nom": "Manteau en cuir",
+    "va": "2",
+    "prop": "",
+    "enc": "2",
+    "tech": "I",
+    "empl": "2"
+   }
+  ],
+  "equip": [
+   {
+    "nom": "Codex",
+    "qte": 1,
+    "enc": "",
+    "effet": "CHA+Expression : +2D ; 1 round de méditation : +1 point d’Égo",
+    "combat": false
+   },
+   {
+    "nom": "Filtre à eau",
+    "qte": 1,
+    "enc": "",
+    "effet": "Rend de l’eau sale potable",
+    "combat": false
+   },
+   {
+    "nom": "Corde 10m",
+    "qte": 1,
+    "enc": "",
+    "effet": "Souvent nécessaire pour escalader",
+    "combat": false
+   },
+   {
+    "nom": "Carte régionale",
+    "qte": 1,
+    "enc": "",
+    "effet": "INS+Orientation : +1D",
+    "combat": false
+   },
+   {
+    "nom": "Silex et amadou",
+    "qte": 1,
+    "enc": "",
+    "effet": "L’amadou met plusieurs minutes à s’enflammer.",
+    "combat": false
+   },
+   {
+    "nom": "Sac à dos",
+    "qte": 1,
+    "enc": "1",
+    "effet": "Encombrement -2 pour les objets dans le sac à dos ; peut être posé au sol",
+    "combat": false
+   },
+   {
+    "nom": "Tissu respirant",
+    "qte": 1,
+    "enc": "",
+    "effet": "Niveau 1 : +1S lors de contamination de spores, germes, et toxines environnementales",
+    "combat": false
+   },
+   {
+    "nom": "Sac de couchage",
+    "qte": 1,
+    "enc": "",
+    "effet": "",
+    "combat": false
+   },
+   {
+    "nom": "Torche",
+    "qte": 1,
+    "enc": "",
+    "effet": "Réduit le malus d’obscurité de 1 point, 30 min",
+    "combat": false
+   },
+   {
+    "nom": "Bandages",
+    "qte": 1,
+    "enc": "",
+    "effet": "Juste après avoir subi la blessure : récupération de 1 Blessure Superficielle",
+    "combat": false
+   }
+  ],
+  "mun": [],
+  "artef": [],
+  "notes": "Cheval d’allure : Vit 1, Acc 1, Frein 1, Blessures 12, Trauma 6.",
+  "portrait": "assets/pretires/pavel.jpg"
  }
 ];
