@@ -627,6 +627,10 @@ function pCombat(p){
   /* à portée de main */
   const cons=p.equip.map((x,i)=>[x,i]).filter(([x])=>x.combat);
   h+=`<section class="psec"><div class="pst">À portée de main</div>${cons.length?cons.map(([x,i])=>`<div class="pcons"><div class="pih"><span class="pin2">${esc(x.nom||"—")}</span><span class="pq${(+x.qte||0)<=0?" low":""}">${pStep("equip."+i+".qte",+x.qte||0)}</span><button class="btn sm red" data-pa="use" data-k="${i}"${(+x.qte||0)<=0?" disabled":""}>Utiliser</button></div>${x.effet?`<div class="pil">${esc(x.effet)}</div>`:""}</div>`).join(""):`<p class="pnone">Coche « À portée de main en combat » sur un objet de l’Inventaire pour le retrouver ici.</p>`}</section>`;
+  /* potentiels : consultation rapide (effet et règles) */
+  if(p.pots.length)h+=`<section class="psec"><div class="pst">Potentiels</div>${p.pots.map(x=>{const f=potFind(x.n),lv=boxes("",+x.lvl||0,3,false);
+    return f?`<details class="card pot ppotc"><summary><span class="t">${esc(x.n)}<span class="pc">${esc(f.c)}</span></span>${lv}</summary><div class="body">${f.p.e?`<p><span class="k">Effet</span>${esc(f.p.e)}</p>`:""}${f.p.r?`<p><span class="k">Règles</span>${esc(f.p.r)}</p>`:""}</div></details>`
+      :`<div class="ppot"><span>${esc(x.n||"—")}</span>${lv}</div>`}).join("")}</section>`;
   /* annuler */
   const U=(S.pUndo||[]).filter(u=>u.id===p.id);
   if(U.length)h+=`<button class="btn pundo" data-pa="undo">↶ Annuler : ${esc(U[U.length-1].label)}</button>`;
