@@ -730,7 +730,7 @@ function pCombatAction(act,a,p){
     case "trk":{const t=p.pistes[k],d=+a.dataset.d;const lab={ego:"Ego",spo:"Sporulations",bles:"Blessures",trau:"Traumatismes"}[k];
       if(k==="ego"){const nv=Math.max(0,Math.min(t.max,t.v-d));if(nv===t.v)return true;pSnap(p,(d<0?"Ego −1":"Ego +1"));t.v=nv;return true}
       if(k==="bles"&&d>0&&t.v>=t.max){const tr=p.pistes.trau;if(tr.v<tr.max){pSnap(p,"Traumatisme +1");tr.v++;toast("Blessures au maximum : +1 Traumatisme")}return true}
-      const nv=Math.max(0,Math.min(k==="spo"?t.max+30:t.max,t.v+d));if(nv===t.v)return true;pSnap(p,lab+(d>0?" +1":" −1"));t.v=nv;if(k==="spo"&&t.perm>nv)t.perm=nv;return true}
+      const nv=Math.max(k==="spo"?pSpoPerm(p):0,Math.min(k==="spo"?t.max+30:t.max,t.v+d));if(nv===t.v)return true;pSnap(p,lab+(d>0?" +1":" −1"));t.v=nv;if(k==="spo"&&t.perm>nv)t.perm=nv;return true}
     case "perm":{const t=p.pistes.spo,d=+a.dataset.d,np=Math.max(0,Math.min(t.max+30,pSpoPerm(p)+d));if(np===pSpoPerm(p))return true;pSnap(p,"Sporulation permanente "+(d>0?"+1":"−1"));t.perm=np;if(t.v<np)t.v=np;return true}
     case "permbox":{const t=p.pistes.spo,n=+a.dataset.n,cur=pSpoPerm(p),np=cur===n?n-1:n;pSnap(p,"Sporulation permanente "+(np>cur?"+":"−")+Math.abs(np-cur));t.perm=np;if(t.v<np)t.v=np;return true}
     case "spoadd":{const t=p.pistes.spo;pSnap(p,"Sporulation permanente +1");t.perm=pSpoPerm(p)+1;if(t.v<t.perm)t.v=t.perm;if(S.pRoll)S.pRoll.permDone=true;return true}
