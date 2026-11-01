@@ -433,23 +433,31 @@ details.card.ppotc{border-left:3px solid var(--red)}
 .pcmb .psec:has(.ptrk){display:grid!important;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch}
 .pcmb .psec:has(.ptrk)>.pst{grid-column:1/-1;order:0}
 .pcmb .psec:has(.ptrk)>:not(.ptrk):not(.pst){grid-column:1/-1}
-.pcmb .ptrk{margin:0!important;padding:10px!important;gap:6px!important;min-width:0}
-.pcmb .ptrk.ego{order:1}.pcmb .ptrk.bles{order:2}.pcmb .ptrk.spo{order:3}.pcmb .ptrk.trau{order:4}
-.pcmb .ptrb{display:grid!important;grid-template-columns:1fr 1fr;gap:6px!important}
-.pcmb .ptrb>:not(.tbtn){grid-column:1/-1;order:3}
-.pcmb .ptrb .tbtn{width:100%!important;height:40px!important}
-.pcmb .ptrh{flex-wrap:nowrap!important;align-items:center;gap:8px!important}
-.pcmb .ptri{width:30px;height:30px;flex:none}
-.pcmb .ptrh svg{width:22px;height:22px}
-.pcmb .ptrh .ptrl{flex:1 1 auto!important;min-width:0;font-size:13px!important;line-height:1.1;overflow-wrap:anywhere}
-.pcmb .ptrh .ptrv{margin-left:auto;flex:none;font-size:24px!important;white-space:nowrap;text-align:right}
-.pcmb .ptrh .ptrv small{font-size:14px}
+.pcmb .ptrk{margin:0!important;padding:10px!important;gap:6px!important;min-width:0;border:1px solid var(--line2)!important;border-radius:12px;background:var(--panel2);justify-content:flex-start}
+.pcmb .ptrk.ego{order:1;--tc:#3fc7a6}.pcmb .ptrk.bles{order:2}.pcmb .ptrk.spo{order:3}.pcmb .ptrk.trau{order:4}
+.pcmb .psec:has(.ptrk)>.pnote{order:5}
+.pcmb .ptrh{display:flex;justify-content:flex-start;align-items:center;gap:8px}
+.pcmb .ptri{width:32px;height:32px;flex:none}
+.pcmb .ptrh svg{width:20px;height:20px}
+.pcmb .ptrh .ptrl{flex:1 1 auto;min-width:0;font-size:13.5px;line-height:1.1;letter-spacing:.05em;overflow-wrap:anywhere}
+.pcmb .ptrv{display:block;text-align:right;font-size:30px;line-height:1.05;white-space:nowrap}
+.pcmb .ptrv small{font-size:15px}
 .pcmb .ptrk.spo .ptrv small.pex{white-space:normal}
-.pcmb .ppl{font-size:13px}
-.pcmb .tbx:not(.ammo){display:grid;grid-template-columns:repeat(auto-fill,minmax(6px,10px));gap:2px;justify-content:start}
-.pcmb .tbx:not(.ammo) i{width:auto;height:auto;aspect-ratio:1}
-@media (max-width:430px){.pcmb .ptri{display:none}}
-@media (max-width:340px){.pcmb .ptrh{gap:6px!important}.pcmb .ptrh .ptrl{font-size:11.5px!important;letter-spacing:.02em!important}.pcmb .ptrh .ptrv{font-size:20px!important}.pcmb .ptrh .ptrv small{font-size:12px}.pcmb .tbx:not(.ammo){grid-template-columns:repeat(auto-fill,minmax(6px,8px))}}
+.pcmb .tbx:not(.ammo){display:grid;grid-template-columns:repeat(auto-fill,minmax(6px,10px));gap:3px 2px;justify-content:start;min-height:12px}
+.pcmb .tbx:not(.ammo) i,.pcmb .tbx .tbxb{width:auto;height:auto;aspect-ratio:1;box-sizing:border-box;border:1.5px solid rgba(242,239,232,.4);background:transparent;padding:0;border-radius:0;position:relative;display:block}
+.pcmb .tbx:not(.ammo) i.on,.pcmb .tbx .tbxb.on{background:var(--red);border-color:var(--red)}
+.pcmb .tbx.ego i.on{background:var(--fg);border-color:var(--fg)}
+.pcmb .tbx.spo .tbxb.on{background:#b39a62;border-color:#b39a62}
+.pcmb .tbx.spo .tbxb.on.perm{background:var(--red);border-color:var(--red)}
+.pcmb .tbx .tbxb::after{content:"";position:absolute;inset:-6px -1px}
+.pcmb .ptrc{display:grid;grid-template-columns:1fr 1fr;margin-top:auto;border:1px solid var(--line2);border-radius:10px;overflow:hidden;background:#000}
+.pcmb .ptrc .tbtn{width:auto;height:42px;border:0;border-radius:0;background:transparent;font-size:26px}
+.pcmb .ptrc .tbtn+.tbtn{border-left:1px solid var(--line2)}
+.pcmb .ptrc .tbtn:active{background:var(--red)}
+.pcmb .pnote{margin:2px 2px 0;font-family:var(--f-ui);font-size:12.5px;letter-spacing:.03em;line-height:1.35;color:var(--dim)}
+.pcmb .pnote b{color:#fff;font-weight:600}
+@media (min-width:600px){.pcmb .psec:has(.ptrk){grid-template-columns:repeat(4,1fr)}.pcmb .ptrh{flex-direction:column;align-items:flex-start;gap:6px}.pcmb .ptrh .ptrl{font-size:12.5px;overflow-wrap:normal}}
+@media (max-width:340px){.pcmb .ptrh{gap:6px}.pcmb .ptri{width:26px;height:26px}.pcmb .ptrh svg{width:17px;height:17px}.pcmb .ptrh .ptrl{font-size:11.5px;letter-spacing:.02em}.pcmb .ptrv{font-size:24px}.pcmb .ptrv small{font-size:13px}.pcmb .tbx:not(.ammo){grid-template-columns:repeat(auto-fill,minmax(6px,8px))}}
 @media (max-width:340px){.pemb .pev{font-size:14.5px;overflow-wrap:normal;hyphens:auto}.pembs{gap:4px}.pidg span{letter-spacing:.08em;font-size:11px}.pidg b{font-size:15.5px}}
 
 /* Galerie de portraits (création / modification de la fiche) */

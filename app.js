@@ -435,7 +435,7 @@ const pLoaded=w=>Math.max(0,Math.min(pCap(w),+w.cur||0)); /* balles réellement 
 const calKey=s=>norm(String(s||"").replace(/×/g,"x")).replace(/[^a-z0-9]/g,"");
 function pAmmoFor(p,w){const c=calKey(w.cal);if(!c)return [];return p.mun.filter(m=>{const n=!m.agent&&calKey(m.nom);return n&&(n.includes(c)||c.includes(n))})}
 function pTrauMalus(p){return +p.pistes.trau.v||0}
-function trackBoxes(n,on,cls,perm){return `<span class="tbx ${cls}">${Array.from({length:n},(_,i)=>`<i class="${i<perm?"on perm":i<on?"on":""}"></i>`).join("")}</span>`}
+function trackBoxes(n,on,cls,perm,tap){return `<span class="tbx ${cls}">${Array.from({length:n},(_,i)=>{const c=i<perm?"on perm":i<on?"on":"";return tap?`<button type="button" class="tbxb ${c}" data-pa="permbox" data-n="${i+1}" aria-label="Sporulation permanente : ${i+1}"></button>`:`<i class="${c}"></i>`}).join("")}</span>`}
 /* Sporulation permanente (Katharsys, Porteur du Germe) : points notés sur l’échelle, qu’aucun EX ne peut effacer ; 50 % du maximum = Léperos */
 const pSpoPerm=p=>Math.max(0,+p.pistes.spo.perm||0);
 const pSpoStep=p=>`<span class="pstep"><button data-pa="perm" data-d="-1" aria-label="Moins un point permanent">−</button><output>${pSpoPerm(p)}</output><button data-pa="perm" data-d="1" aria-label="Plus un point permanent">+</button></span>`;
@@ -456,15 +456,17 @@ function pTrack(p,k,l){
   if(k==="spo"&&val===t.max)warn="Sporulations au maximum : un point de plus et le PJ doit résister à l’Amorce.";
   let spo="";
   if(k==="spo"){const ex=val-t.max,pm=pSpoPerm(p);
-    spo=`<div class="pperm"><span class="ppl">Sporulation permanente<small>aucun EX ne peut l’effacer</small></span>${pSpoStep(p)}</div>`
-      +(pSpoLep(p)?`<div class="ptrw">${esc(pSpoLep(p))}</div>`:"")
+    spo=(pSpoLep(p)?`<div class="ptrw">${esc(pSpoLep(p))}</div>`:"")
       +(ex>0?`<div class="ptrw">Excédent de ${ex} : test PSY + Foi/Volonté, difficulté ${ex}. En cas d’échec, le PJ note 1 point de Sporulation permanente.</div><button class="btn sm" data-pa="spotest">Lancer le test (difficulté ${ex})</button>`:"")
       +pRollPanel(p,"spo")
       +(pSpoFail(p)?`<div class="ptrw">Test raté : le Germe s’installe.</div><button class="btn red" data-pa="spoadd">Ajouter 1 point permanent</button>`:"");}
-  return `<div class="ptrk ${k}${ego?" ego":""}"><div class="ptrh">${pTicon(k)}<span class="ptrl">${l}</span><b class="ptrv">${val}<small> / ${t.max}</small>${k==="spo"&&val>t.max?`<small class="pex"> +${val-t.max} en excédent</small>`:""}</b></div>
-   <div class="ptrb"><button class="tbtn" data-pa="trk" data-k="${k}" data-d="-1" aria-label="${ego?"Dépenser 1 point d’Ego":"Retirer 1"}">−</button>${trackBoxes(t.max,Math.min(val,t.max),ego?"ego":k,k==="spo"?Math.min(pSpoPerm(p),t.max):0)}<button class="tbtn" data-pa="trk" data-k="${k}" data-d="1" aria-label="${ego?"Récupérer 1 point d’Ego":"Ajouter 1"}">+</button></div>
+  return `<div class="ptrk ${k}${ego?" ego":""}"><div class="ptrh">${pTicon(k)}<span class="ptrl">${l}</span></div>
+   <b class="ptrv">${val}<small> / ${t.max}</small>${k==="spo"&&val>t.max?`<small class="pex"> +${val-t.max} en excédent</small>`:""}</b>
+   ${trackBoxes(t.max,Math.min(val,t.max),ego?"ego":k,k==="spo"?Math.min(pSpoPerm(p),t.max):0,k==="spo")}
+   <div class="ptrc"><button class="tbtn" data-pa="trk" data-k="${k}" data-d="-1" aria-label="${ego?"Dépenser 1 point d’Ego":"Retirer 1"}">−</button><button class="tbtn" data-pa="trk" data-k="${k}" data-d="1" aria-label="${ego?"Récupérer 1 point d’Ego":"Ajouter 1"}">+</button></div>
    ${warn?`<div class="ptrw">${esc(warn)}</div>`:""}${spo}</div>`;
 }
+const pSpoNote=p=>{const pm=pSpoPerm(p);return `<p class="pnote">Sporulations : touche une case pour noter une sporulation permanente (aucun EX ne peut l’effacer) ; retouche la dernière pour l’enlever.${pm?` <b>${pm} permanente${pm>1?"s":""} notée${pm>1?"s":""}.</b>`:""}</p>`};
 /* Rafale (X) : jusqu’à X balles en 1 action, +1D et +1 dégât par balle ; plusieurs cibles : dés partagés à parts égales,
    un jet par cible, dégâts de rafale divisés (arrondi inférieur), pas plus de cibles que de balles.
    Régularité (nDC) : avec n déclencheurs, nouvelle attaque immédiate à −2D (cumulatif). (Katharsys, propriétés des armes) */
@@ -656,7 +658,7 @@ function pCombat(p){
   const c=p.combat||{};
   if(c.on&&c.init==null&&(!S.pRoll||S.pRoll.at!=="init"||S.pRoll.pid!==p.id))pOpenRoll(p,"init",pInitOpts(p));
   let h=(c.on?(S.pRoll&&S.pRoll.at==="init"&&S.pRoll.pid===p.id?`<section class="psec"><div class="pst">Round ${c.round} : initiative</div>${pRollPanel(p,"init")}</section>`:""):`<button class="roll pstart" data-pa="cstart">COMMENCER LE COMBAT</button>`)
-   +pArmorBlock(p)+pMentalBlock(p)+`<section class="psec"><div class="pst">Condition</div>${P_PISTES.map(([k,l])=>pTrack(p,k,k==="bles"?"Blessures":l)).join("")}
+   +pArmorBlock(p)+pMentalBlock(p)+`<section class="psec"><div class="pst">Condition</div>${P_PISTES.map(([k,l])=>pTrack(p,k,k==="bles"?"Blessures":l)).join("")}${pSpoNote(p)}
    </section>`;
   /* défense et autres actions */
   const al=pActLeft(p),dis=pActDis(p);
@@ -730,6 +732,7 @@ function pCombatAction(act,a,p){
       if(k==="bles"&&d>0&&t.v>=t.max){const tr=p.pistes.trau;if(tr.v<tr.max){pSnap(p,"Traumatisme +1");tr.v++;toast("Blessures au maximum : +1 Traumatisme")}return true}
       const nv=Math.max(0,Math.min(k==="spo"?t.max+30:t.max,t.v+d));if(nv===t.v)return true;pSnap(p,lab+(d>0?" +1":" −1"));t.v=nv;if(k==="spo"&&t.perm>nv)t.perm=nv;return true}
     case "perm":{const t=p.pistes.spo,d=+a.dataset.d,np=Math.max(0,Math.min(t.max+30,pSpoPerm(p)+d));if(np===pSpoPerm(p))return true;pSnap(p,"Sporulation permanente "+(d>0?"+1":"−1"));t.perm=np;if(t.v<np)t.v=np;return true}
+    case "permbox":{const t=p.pistes.spo,n=+a.dataset.n,cur=pSpoPerm(p),np=cur===n?n-1:n;pSnap(p,"Sporulation permanente "+(np>cur?"+":"−")+Math.abs(np-cur));t.perm=np;if(t.v<np)t.v=np;return true}
     case "spoadd":{const t=p.pistes.spo;pSnap(p,"Sporulation permanente +1");t.perm=pSpoPerm(p)+1;if(t.v<t.perm)t.v=t.perm;if(S.pRoll)S.pRoll.permDone=true;return true}
     case "spotest":{const t=p.pistes.spo,ex=Math.max(1,t.v-t.max),A=x=>+p.a[x]||0,K=x=>+p.k[x]||0,c=K("Volonté")>K("Foi")?"Volonté":"Foi";
       pOpenRoll(p,"spo",{kind:"sk",label:"Résister à l’Amorce",calc:`Psyché ${A("PSY")} + ${c} ${K(c)}`,base:A("PSY")+K(c),diff:Math.min(10,ex)});return true}
